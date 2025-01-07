@@ -78,7 +78,7 @@ function parseAvailableTimeSlots(html: string, daysToAdd: number) {
   // Select elements that represent time slots
   const slotElements = doc.querySelectorAll('.k-event');
 
-  slotElements.forEach((slot: Element, index: number) => {
+  slotElements.forEach((slot: Element) => {
     const timeElement = slot.getAttribute('aria-label');
     const style = slot.getAttribute('style');
     
