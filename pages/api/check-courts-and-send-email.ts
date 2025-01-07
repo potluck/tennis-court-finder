@@ -149,10 +149,16 @@ async function sendEmail(emailContent: EmailContent) {
     },
   });
 
+  const today = new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   const mailOptions = {
     from: "potluck.mittal@gmail.com",
     to: "potluck.mittal@gmail.com, summer.than@gmail.com",
-    subject: "McCarren Tennis Courts Availablity Update",
+    subject: `McCarren Tennis Courts Availability Update - ${today}`,
     text: emailContent.text,
     html: emailContent.html
   };

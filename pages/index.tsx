@@ -105,11 +105,22 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex flex-col gap-8 w-full">
-            {createTable(timeSlots[0] || [], "Today's Available Times")}
-            {createTable(timeSlots[1] || [], "Tomorrow's Available Times")}
-            {createTable(timeSlots[2] || [], `Available Times for ${getDayLabel(2)}`)}
-            {createTable(timeSlots[3] || [], `Available Times for ${getDayLabel(3)}`)}
-            {createTable(timeSlots[4] || [], `Available Times for ${getDayLabel(4)}`)}
+            {Object.entries(timeSlots).some(([_, slots]) => slots && slots.some((slot: { available: string | any[]; }) => slot.available && slot.available.length > 0)) ? (
+              <>
+                {timeSlots[0]?.some(slot => slot.available && slot.available.length > 0) &&
+                  createTable(timeSlots[0], "Today's Available Times")}
+                {timeSlots[1]?.some(slot => slot.available && slot.available.length > 0) &&
+                  createTable(timeSlots[1], "Tomorrow's Available Times")}
+                {timeSlots[2]?.some(slot => slot.available && slot.available.length > 0) &&
+                  createTable(timeSlots[2], `Available Times for ${getDayLabel(2)}`)}
+                {timeSlots[3]?.some(slot => slot.available && slot.available.length > 0) &&
+                  createTable(timeSlots[3], `Available Times for ${getDayLabel(3)}`)}
+                {timeSlots[4]?.some(slot => slot.available && slot.available.length > 0) &&
+                  createTable(timeSlots[4], `Available Times for ${getDayLabel(4)}`)}
+              </>
+            ) : (
+              <p className="text-lg text-gray-600">No time slots available in the next 5 days</p>
+            )}
           </div>
         )}
       </main>
