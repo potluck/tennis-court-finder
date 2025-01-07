@@ -63,20 +63,20 @@ export default function Home() {
       try {
         const responses = await Promise.all([
           fetch('/api/courts?daysLater=0'),
-          // fetch('/api/courts?daysLater=1'),
-          // fetch('/api/courts?daysLater=2'),
-          // fetch('/api/courts?daysLater=3'),
-          // fetch('/api/courts?daysLater=4')
+          fetch('/api/courts?daysLater=1'),
+          fetch('/api/courts?daysLater=2'),
+          fetch('/api/courts?daysLater=3'),
+          fetch('/api/courts?daysLater=4')
         ]);
         
         const data = await Promise.all(responses.map(res => res.json()));
         
         setTimeSlots({
           0: data[0],
-          // 1: data[1],
-          // 2: data[2],
-          // 3: data[3],
-          // 4: data[4]
+          1: data[1],
+          2: data[2],
+          3: data[3],
+          4: data[4]
         });
         setIsLoading(false);
       } catch (error) {

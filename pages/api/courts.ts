@@ -78,14 +78,14 @@ function parseAvailableTimeSlots(html: string, daysToAdd: number) {
   // Select elements that represent time slots
   const slotElements = doc.querySelectorAll('.k-event');
 
-  slotElements.forEach((slot: Element) => {
+  slotElements.forEach((slot: Element, index: number) => {
     const timeElement = slot.getAttribute('aria-label');
     const style = slot.getAttribute('style');
     
     // Extract left position from style string
     const leftMatch = style?.match(/left:\s*(\d+)px/);
     const leftPosition = leftMatch ? parseInt(leftMatch[1]) : 1;
-    const court = (leftPosition - 1) / 120 + 1
+    const court = process.env.NODE_ENV === 'development' ? (leftPosition - 1) / 120 + 1 : Math.round((leftPosition - 1) / 258 + 1);
 
     timeSlots.push({
       time: timeElement || 'Unknown Time',
