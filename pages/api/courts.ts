@@ -4,6 +4,8 @@ import puppeteer from 'puppeteer';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    const { daysLater } = req.query;
+    const daysToAdd = parseInt(daysLater as string) || 0;
     const reservationUrl = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
 
     // Launch puppeteer
@@ -16,16 +18,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Navigate to the page and wait for content to load
     await page.goto(reservationUrl, { waitUntil: 'networkidle0' });
 
-    // await page.click('button[title="Next"]');
-    // await page.waitForNetworkIdle();
-
+    // Click the next button daysToAdd times
+    for (let i = 0; i < daysToAdd; i++) {
+      await page.click('button[title="Next"]');
+      await page.waitForNetworkIdle();
+    }
     
     // Get the page content after JavaScript execution
     const html = await page.content();
     // Close the browser
     await browser.close();
 
-    const availableTimeSlots = parseAvailableTimeSlots(html);
+    const availableTimeSlots = parseAvailableTimeSlots(html, daysToAdd);
     res.status(200).json(availableTimeSlots);
     
   } catch (error) {
@@ -37,7 +41,7 @@ const sanitizeHtml = (html: string) => {
   return html?.replace(/<style([\S\s]*?)>([\S\s]*?)<\/style>/gim, '')?.replace(/<script([\S\s]*?)>([\S\s]*?)<\/script>/gim, '')
 }
 
-function parseAvailableTimeSlots(html: string) {
+function parseAvailableTimeSlots(html: string, daysToAdd: number) {
 
   // const virtualConsole = new JSDOM().virtualConsole;
   // virtualConsole.on("error", () => {
@@ -61,7 +65,7 @@ function parseAvailableTimeSlots(html: string) {
   // Select elements that represent time slots
   const slotElements = doc.querySelectorAll('.k-event');
 
-  slotElements.forEach((slot: Element, index: number) => {
+  slotElements.forEach((slot: Element) => {
     const timeElement = slot.getAttribute('aria-label');
     const style = slot.getAttribute('style');
     
@@ -76,7 +80,7 @@ function parseAvailableTimeSlots(html: string) {
     });
   });
 
-  const availableTimes = getAvailableTimeslots(timeSlots);
+  const availableTimes = getAvailableTimeslots(timeSlots, daysToAdd);
   console.log("availableTimes: ", availableTimes);
   // Filter for later day time slots (after 4 PM)
   return availableTimes;
@@ -94,7 +98,8 @@ function parseTime(timeStr: string): Date {
 
   if (!match) throw new Error(`Invalid time format: ${timeStr}`);
   
-  let [hours, minutes, period] = [parseInt(match[1]), parseInt(match[2]), match[3]];
+  let [hours] = [parseInt(match[1])];
+  const [minutes, period] = [parseInt(match[2]), match[3]];
   if (period === "PM" && hours !== 12) hours += 12;
   if (period === "AM" && hours === 12) hours = 0;
   const date = new Date();
@@ -103,9 +108,18 @@ function parseTime(timeStr: string): Date {
 }
 
 // Function to extract available timeslots
-function getAvailableTimeslots(timeSlots: { time: string; court: number }[]): { court: number; available: string[] }[] {
-  const startOfDay = parseTime("8:00 AM");
-  const endOfDay = parseTime("11:00 PM");
+function getAvailableTimeslots(timeSlots: { time: string; court: number }[], daysToAdd: number): { court: number; available: string[] }[] {
+  // Get current time in Eastern Time
+  const now = new Date();
+  const etOptions = { timeZone: 'America/New_York' };
+  const currentTimeET = new Date(now.toLocaleString('en-US', etOptions));
+  
+  // Set startOfDay based on daysToAdd
+  const startOfDay = daysToAdd === 0 
+    ? currentTimeET 
+    : parseTime("8:00 AM");
+    
+  const endOfDay = parseTime("10:00 PM");
 
   const courts = new Map<number, { start: Date; end: Date }[]>();
 
@@ -129,7 +143,7 @@ function getAvailableTimeslots(timeSlots: { time: string; court: number }[]): { 
       // Sort bookings by start time
       bookings.sort((a, b) => a.start.getTime() - b.start.getTime());
 
-      let availableSlots: string[] = [];
+      const availableSlots: string[] = [];
       let lastEnd = startOfDay;
 
       bookings.forEach(({ start, end }) => {
