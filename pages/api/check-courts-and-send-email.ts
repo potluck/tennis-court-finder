@@ -1,12 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import nodemailer, { SentMessageInfo } from "nodemailer";
 
 interface TimeSlot {
   court: string;
   available: string[];
-}
-
-interface TimeSlotsByDay {
-  [key: number]: TimeSlot[];
 }
 
 interface EmailContent {
@@ -115,7 +112,6 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
 }
 
 async function sendEmail(emailContent: EmailContent) {
-  const nodemailer = require("nodemailer");
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
@@ -135,7 +131,7 @@ async function sendEmail(emailContent: EmailContent) {
     html: emailContent.html
   };
 
-  transporter.sendMail(mailOptions, (error: Error | null, info: any) => {
+  transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
     if (error) {
       console.error("Error sending email: ", error);
     } else {
