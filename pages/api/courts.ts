@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { JSDOM } from 'jsdom';
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium'
+import puppeteerCore from 'puppeteer-core'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -8,8 +10,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const daysToAdd = parseInt(daysLater as string) || 0;
     const reservationUrl = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
 
-    // Launch puppeteer
-    const browser = await puppeteer.launch({ headless: true });
+    let browser = null;
+    if (process.env.NODE_ENV === 'development') {
+      browser = await puppeteer.launch({ headless: true });
+    }
+    else {
+      // Puppeteer-core
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+          headless: chromium.headless,
+      });
+    }
     const page = await browser.newPage();
     
     // Set a realistic user agent
