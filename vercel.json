@@ -1,7 +1,2 @@
 {
-  "functions": {
-    "api/courts.ts": {
-      "maxDuration": 30
-    }
-  }
 }
