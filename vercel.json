@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/scripts/check-courts",
-      "schedule": "25 16 * * *"
+      "schedule": "26 21 * * *"
     }
   ]
 }
