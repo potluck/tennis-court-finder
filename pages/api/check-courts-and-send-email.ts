@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // }
     console.log("Fetched data pots");
     
-    const hasAvailableSlots = Object.values(data).some(daySlots => 
-      daySlots.length > 0
+    const hasAvailableSlots = (data as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
+      daySlots.some(slot => slot.available && slot.available.length > 0)
     );
 
     if (hasAvailableSlots) {
