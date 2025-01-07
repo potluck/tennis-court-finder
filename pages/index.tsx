@@ -93,7 +93,7 @@ export default function Home() {
       className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
     >
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
-        <h1>Available Court Time Slots</h1>
+        <h1 className="text-3xl font-semibold text-gray-900 mb-6">McCarren Available Court Time Slots</h1>
         {isLoading ? (
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
