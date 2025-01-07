@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/router';
 
 interface TimeSlot {
   court: string;
@@ -57,16 +58,18 @@ function getDayLabel(daysLater: number): string {
 export default function Home() {
   const [timeSlots, setTimeSlots] = useState<TimeSlotsByDay>({});
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
       try {
+        const includeHalfHourSlots = router.query.includeHalfHourSlots === 'true';
         const responses = await Promise.all([
-          fetch('/api/courts?daysLater=0'),
-          fetch('/api/courts?daysLater=1'),
-          fetch('/api/courts?daysLater=2'),
-          fetch('/api/courts?daysLater=3'),
-          fetch('/api/courts?daysLater=4')
+          fetch(`/api/courts?daysLater=0&includeHalfHourSlots=${includeHalfHourSlots}`),
+          fetch(`/api/courts?daysLater=1&includeHalfHourSlots=${includeHalfHourSlots}`),
+          fetch(`/api/courts?daysLater=2&includeHalfHourSlots=${includeHalfHourSlots}`),
+          fetch(`/api/courts?daysLater=3&includeHalfHourSlots=${includeHalfHourSlots}`),
+          fetch(`/api/courts?daysLater=4&includeHalfHourSlots=${includeHalfHourSlots}`)
         ]);
         
         const data = await Promise.all(responses.map(res => res.json()));
@@ -85,8 +88,10 @@ export default function Home() {
       }
     }
 
-    fetchData();
-  }, []);
+    if (router.isReady) {
+      fetchData();
+    }
+  }, [router.isReady, router.query.includeHalfHourSlots]);
 
   return (
     <div
