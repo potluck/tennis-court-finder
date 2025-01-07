@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("sending email pots");
       const response = await sendEmail(emailContent);
       // console.log("Yo pots - got slots, ", data);
-      res.status(200).json({ message: "Email sent", response });
+      res.status(200).json({ message: "Email sent: " + response });
     }
 
   } catch (error) {
@@ -133,7 +133,7 @@ async function sendEmail(emailContent: EmailContent) {
     text: emailContent.text,
     html: emailContent.html
   };
-
+  console.log("transporter, you ready?");
   transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
     if (error) {
       console.error("Error sending email: ", error);
