@@ -16,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Navigate to the page and wait for content to load
     await page.goto(reservationUrl, { waitUntil: 'networkidle0' });
 
-    await page.click('button[title="Next"]');
-    await page.waitForNetworkIdle();
+    // await page.click('button[title="Next"]');
+    // await page.waitForNetworkIdle();
 
     
     // Get the page content after JavaScript execution
