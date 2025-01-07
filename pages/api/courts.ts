@@ -6,8 +6,9 @@ import puppeteerCore from 'puppeteer-core'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { daysLater } = req.query;
+    const { daysLater, includeHalfHourSlots } = req.query;
     const daysToAdd = parseInt(daysLater as string) || 0;
+    const shouldIncludeHalfHourSlots = includeHalfHourSlots === 'true';
     const reservationUrl = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
 
     let browser = null;
@@ -42,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Close the browser
     await browser.close();
 
-    const availableTimeSlots = parseAvailableTimeSlots(html, daysToAdd);
+    const availableTimeSlots = parseAvailableTimeSlots(html, daysToAdd, shouldIncludeHalfHourSlots);
     res.status(200).json(availableTimeSlots);
     
   } catch (error) {
@@ -54,7 +55,7 @@ const sanitizeHtml = (html: string) => {
   return html?.replace(/<style([\S\s]*?)>([\S\s]*?)<\/style>/gim, '')?.replace(/<script([\S\s]*?)>([\S\s]*?)<\/script>/gim, '')
 }
 
-function parseAvailableTimeSlots(html: string, daysToAdd: number) {
+function parseAvailableTimeSlots(html: string, daysToAdd: number, includeHalfHourSlots: boolean = false) {
 
   // const virtualConsole = new JSDOM().virtualConsole;
   // virtualConsole.on("error", () => {
@@ -93,7 +94,7 @@ function parseAvailableTimeSlots(html: string, daysToAdd: number) {
     });
   });
 
-  const availableTimes = getAvailableTimeslots(timeSlots, daysToAdd);
+  const availableTimes = getAvailableTimeslots(timeSlots, daysToAdd, includeHalfHourSlots);
   console.log("availableTimes: ", availableTimes);
   // Filter for later day time slots (after 4 PM)
   return availableTimes;
@@ -121,7 +122,11 @@ function parseTime(timeStr: string): Date {
 }
 
 // Function to extract available timeslots
-function getAvailableTimeslots(timeSlots: { time: string; court: number }[], daysToAdd: number): { court: number; available: string[] }[] {
+function getAvailableTimeslots(
+    timeSlots: { time: string; court: number }[],
+    daysToAdd: number,
+    includeHalfHourSlots: boolean = false
+): { court: number; available: string[] }[] {
   // Get current time in Eastern Time
   const now = new Date();
   const etOptions = { timeZone: 'America/New_York' };
@@ -161,9 +166,13 @@ function getAvailableTimeslots(timeSlots: { time: string; court: number }[], day
 
       bookings.forEach(({ start, end }) => {
           if (start > lastEnd) {
-              availableSlots.push(
-                  `${lastEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-              );
+              const duration = start.getTime() - lastEnd.getTime();
+              // Only add slots that are either 1 hour or (if includeHalfHourSlots is true) 30 minutes
+              if (duration >= 3600000 || (includeHalfHourSlots && duration >= 1800000)) {
+                  availableSlots.push(
+                      `${lastEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                  );
+              }
           }
           lastEnd = new Date(Math.max(lastEnd.getTime(), end.getTime()));
       });
