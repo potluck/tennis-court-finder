@@ -1,3 +1,5 @@
+import { NextApiRequest, NextApiResponse } from 'next';
+
 interface TimeSlot {
   court: string;
   available: string[];
@@ -12,7 +14,7 @@ interface EmailContent {
   text: string;
 }
 
-async function checkCourts() {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {  
   try {
     // Fetch data for the next 5 days
     const responses = await Promise.all([
@@ -35,12 +37,14 @@ async function checkCourts() {
       const emailContent = formatEmailContent(data);
       await sendEmail(emailContent);
       // console.log("Yo pots - got slots, ", data);
+      res.status(200).json({ message: "Email sent" });
     }
 
   } catch (error) {
     console.error('Error checking courts:', error);
   }
 }
+
 
 function formatEmailContent(data: TimeSlot[][]): EmailContent {
   let htmlContent = `
@@ -139,6 +143,3 @@ async function sendEmail(emailContent: EmailContent) {
     }
   });
 }
-
-// Run the script
-checkCourts(); 

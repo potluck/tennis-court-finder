@@ -3,11 +3,5 @@
     "pages/api/courts.ts": {
       "maxDuration": 60
     }
-  },
-  "crons": [
-    {
-      "path": "/scripts/check-courts",
-      "schedule": "26 21 * * *"
-    }
-  ]
+  }
 }
