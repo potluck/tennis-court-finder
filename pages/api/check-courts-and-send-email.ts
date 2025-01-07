@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const emailContent = formatEmailContent(data);
       console.log("sending email pots");
       const response = await sendEmail(emailContent);
-      // console.log("Yo pots - got slots, ", data);
+      console.log("sent email pots " + response);
       res.status(200).json({ message: "Email sent: " + response });
     }
 
@@ -129,18 +129,26 @@ async function sendEmail(emailContent: EmailContent) {
   const mailOptions = {
     from: "potluck.mittal@gmail.com",
     to: "potluck.mittal@gmail.com, summer.than@gmail.com",
-    subject: "McCarren Tennis Courts Availablity",
+    subject: "McCarren Tennis Courts Availablity Update",
     text: emailContent.text,
     html: emailContent.html
   };
   console.log("transporter, you ready?");
-  await transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
-    if (error) {
-      console.error("Error sending email: ", error);
-      return error.toString();
-    } else {
-      console.log("Email sent: ", info.response);
-      return info.response.toString();
-    }
+
+  let returnInfo = "";
+  await new Promise((resolve, reject) => {
+    // send mail
+    transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error("Error sending email: ", err);
+          returnInfo = "Error sending email: " + err;;
+          reject(err);
+        } else {
+            console.log(info);
+            returnInfo = "sent email pots!!!!!3" + info.response;
+            resolve(info);
+        }
+    });
   });
+  return returnInfo;
 }
