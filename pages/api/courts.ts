@@ -35,8 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Click the next button daysToAdd times
     for (let i = 0; i < daysToAdd; i++) {
       await page.click('button[title="Next"]');
-      await page.waitForNetworkIdle();
+      
     }
+    await page.waitForNetworkIdle();
     
     // Get the page content after JavaScript execution
     const html = await page.content();
