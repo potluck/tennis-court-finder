@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
+import { useState, useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,6 +13,24 @@ const geistMono = Geist_Mono({
 });
 
 export default function Home() {
+  const [timeSlots, setTimeSlots] = useState([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        console.log("Hey pots, trying to fetch data");
+        const response = await fetch('/api/courts');
+        const data = await response.json();
+        setTimeSlots(data);
+        // console.log("data pots: ", data);
+      } catch (error) {
+        console.error('Error fetching time slots:', error);
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <div
       className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
