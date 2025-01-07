@@ -13,6 +13,7 @@ interface EmailContent {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {  
   try {
+    console.log("Checking courts and sending email");
     // Fetch data for the next 5 days
     const responses = await Promise.all([
       fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=0'),
@@ -23,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ]);
     
     const data = await Promise.all(responses.map(res => res.json()));
+    console.log("Fetched data pots");
     
     // Check if there are any available slots
     const hasAvailableSlots = (data as TimeSlot[][]).some((daySlots: TimeSlot[]) => 
@@ -32,9 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (hasAvailableSlots) {
       // Create email content
       const emailContent = formatEmailContent(data);
-      await sendEmail(emailContent);
+      console.log("sending email pots");
+      const response = await sendEmail(emailContent);
       // console.log("Yo pots - got slots, ", data);
-      res.status(200).json({ message: "Email sent" });
+      res.status(200).json({ message: "Email sent", response });
     }
 
   } catch (error) {
@@ -134,8 +137,10 @@ async function sendEmail(emailContent: EmailContent) {
   transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
     if (error) {
       console.error("Error sending email: ", error);
+      return error.toString();
     } else {
       console.log("Email sent: ", info.response);
+      return info.response.toString();
     }
   });
 }
