@@ -105,7 +105,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex flex-col gap-8 w-full">
-            {Object.entries(timeSlots).some(([_, slots]) => slots && slots.some((slot: { available: string | any[]; }) => slot.available && slot.available.length > 0)) ? (
+            {Object.entries(timeSlots).some(([, slots]) => slots && slots.some((slot: TimeSlot) => slot.available && slot.available.length > 0)) ? (
               <>
                 {timeSlots[0]?.some(slot => slot.available && slot.available.length > 0) &&
                   createTable(timeSlots[0], "Today's Available Times")}
