@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=4')
     ]);
     
+    console.log("got responses");
     const data = await Promise.all(responses.map(res => res.json()));
     // const data = {
     //   "0": [
@@ -46,6 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hasAvailableSlots = (data as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
       daySlots.some(slot => slot.available && slot.available.length > 0)
     );
+    console.log("hasAvailableSlots pots", hasAvailableSlots);
 
     if (hasAvailableSlots) {
       // Convert object to array format before passing to formatEmailContent
@@ -56,6 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const response = await sendEmail(emailContent);
       console.log("sent email pots " + response);
       res.status(200).json({ message: "Email sent: " + response });
+    }
+    else {
+      res.status(200).json({ message: "No available slots" });
     }
 
   } catch (error) {
