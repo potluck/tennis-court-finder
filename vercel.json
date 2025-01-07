@@ -1,6 +1,6 @@
 {
   "functions": {
-    "pages/api/courts": {
+    "pages/api/courts.ts": {
       "maxDuration": 60
     }
   }
