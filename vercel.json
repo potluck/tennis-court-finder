@@ -2,6 +2,9 @@
   "functions": {
     "pages/api/courts.ts": {
       "maxDuration": 60
+    },
+    "pages/api/check-courts-and-send-email.ts": {
+      "maxDuration": 60
     }
   }
 }
