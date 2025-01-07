@@ -134,7 +134,7 @@ async function sendEmail(emailContent: EmailContent) {
     html: emailContent.html
   };
   console.log("transporter, you ready?");
-  transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
+  await transporter.sendMail(mailOptions, (error: Error | null, info: SentMessageInfo) => {
     if (error) {
       console.error("Error sending email: ", error);
       return error.toString();
