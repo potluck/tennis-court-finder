@@ -15,25 +15,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log("Checking courts and sending email");
     // Fetch data for the next 5 days
-    const responses = await Promise.all([
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=0'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=1'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=2'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=3'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=4')
-    ]);
+    // const responses = await Promise.all([
+    //   fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=0'),
+    //   fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=1'),
+    //   fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=2'),
+    //   fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=3'),
+    //   fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=4')
+    // ]);
     
-    const data = await Promise.all(responses.map(res => res.json()));
+    // const data = await Promise.all(responses.map(res => res.json()));
+    const data = {
+      "0": [
+        { court: "1", available: ["8:00 AM", "9:00 AM", "10:00 AM"] },
+        { court: "2", available: ["2:00 PM", "3:00 PM"] }
+      ],
+      "1": [
+        { court: "3", available: ["11:00 AM", "12:00 PM"] }
+      ],
+      "2": [
+        { court: "1", available: ["4:00 PM", "5:00 PM"] },
+        { court: "4", available: ["9:00 AM"] }
+      ],
+      "3": [],
+      "4": [
+        { court: "2", available: ["1:00 PM", "2:00 PM", "3:00 PM"] }
+      ]
+    }
     console.log("Fetched data pots");
     
-    // Check if there are any available slots
-    const hasAvailableSlots = (data as TimeSlot[][]).some((daySlots: TimeSlot[]) => 
-      daySlots.some(slot => slot.available && slot.available.length > 0)
+    // Since we now have actual data, we can uncomment and fix the hasAvailableSlots check
+    const hasAvailableSlots = Object.values(data).some(daySlots => 
+      daySlots.length > 0
     );
 
     if (hasAvailableSlots) {
-      // Create email content
-      const emailContent = formatEmailContent(data);
+      // Convert object to array format before passing to formatEmailContent
+      const dataArray = Object.values(data);
+      const emailContent = formatEmailContent(dataArray);
       console.log("sending email pots");
       const response = await sendEmail(emailContent);
       console.log("sent email pots " + response);
