@@ -142,7 +142,7 @@ function getAvailableTimeslots(
   
   // Set startOfDay based on daysToAdd
   const startOfDay = daysToAdd === 0 
-    ? currentTimeET 
+    ? parseTime(currentTimeET)
     : parseTime("8:00 AM");
     
   const endOfDay = parseTime("10:00 PM");
