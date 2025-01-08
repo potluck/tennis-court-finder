@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // console.log("got cache!");
       // Transform cached data back to the expected format
       const availableTimeSlots = cachedData.map((court: { court: number; available: string[]; }) => ({
-        court: `Court #${court.court}${court.court === 1 ? ' (Singles Court)' : ''}`,
+        court: `Court #${court.court}`,
         available: court.available
       }));
       return res.status(200).json(availableTimeSlots);
@@ -211,7 +211,7 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
       return data.Data.map(({ Start, End, CourtLabel }) => ({
           Start,
           End,
-          CourtLabel
+          CourtLabel: CourtLabel.includes('Singles Court') ? 'Court #1' : CourtLabel
       }));
   } catch (error) {
       console.error('Error fetching courts data:', error);
