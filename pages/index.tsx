@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
+import { parseTime } from '@/utils/time';
+import { filterShortTimeSlots } from '@/utils/timeSlots';
 
 interface TimeSlot {
   court: string;
@@ -65,21 +67,25 @@ export default function Home() {
       try {
         const includeHalfHourSlots = router.query.includeHalfHourSlots === 'true';
         const responses = await Promise.all([
-          fetch(`/api/courts?daysLater=0&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=1&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=2&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=3&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=4&includeHalfHourSlots=${includeHalfHourSlots}`)
+          fetch(`/api/courts?daysLater=0`),
+          fetch(`/api/courts?daysLater=1`),
+          fetch(`/api/courts?daysLater=2`),
+          fetch(`/api/courts?daysLater=3`),
+          fetch(`/api/courts?daysLater=4`)
         ]);
         
-        const data = await Promise.all(responses.map(res => res.json()));
-        
+        const data = await Promise.all(
+          responses.map(res => res.json() as Promise<TimeSlot[]>)
+        );
+
+        const processedData = includeHalfHourSlots ? data : filterShortTimeSlots(data);
+
         setTimeSlots({
-          0: data[0],
-          1: data[1],
-          2: data[2],
-          3: data[3],
-          4: data[4]
+          0: processedData[0],
+          1: processedData[1],
+          2: processedData[2],
+          3: processedData[3],
+          4: processedData[4]
         });
         setIsLoading(false);
       } catch (error) {

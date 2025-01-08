@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import nodemailer from "nodemailer";
+import { filterShortTimeSlots } from '@/utils/timeSlots';
 
 interface TimeSlot {
   court: string;
@@ -43,17 +44,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //   ]
     // }
     console.log("Fetched data pots");
-    
-    const hasAvailableSlots = (data as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
+
+    // Filter out short time slots from the data
+    const filteredData = filterShortTimeSlots(data);
+
+    const hasAvailableSlots = (filteredData as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
       daySlots.some(slot => slot.available && slot.available.length > 0)
     );
     console.log("hasAvailableSlots pots", hasAvailableSlots);
 
     if (hasAvailableSlots) {
-      // Convert object to array format before passing to formatEmailContent
-      // const dataArray = Object.values(data);
-      // const emailContent = formatEmailContent(dataArray);
-      const emailContent = formatEmailContent(data);
+      const emailContent = formatEmailContent(filteredData);
       console.log("sending email pots");
       const response = await sendEmail(emailContent);
       console.log("sent email pots " + response);
@@ -149,7 +150,8 @@ async function sendEmail(emailContent: EmailContent) {
     },
   });
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const today = new Date().toLocaleString('en-US', { 
+    timeZone: 'America/New_York',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
