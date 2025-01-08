@@ -17,6 +17,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { daysLater, forEmail } = req.query;
     const daysToAdd = parseInt(daysLater as string) || 0;
     
+    if (daysToAdd == 0) {
+      const now = new Date();
+      const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      console.log("etTime: ", etTime, etTime.getHours());
+    }
+
+    if (new Date().getHours() < 25) {
+      return res.status(200).json([]);
+    }
+
     // Get today's date in Eastern time
     const today = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     const todayET = new Date(today);
