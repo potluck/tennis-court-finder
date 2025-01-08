@@ -67,10 +67,10 @@ export default function Home() {
         const includeHalfHourSlots = router.query.includeHalfHourSlots === 'true';
         const responses = await Promise.all([
           fetch(`/api/courts?daysLater=0`),
-          fetch(`/api/courts?daysLater=1`),
-          fetch(`/api/courts?daysLater=2`),
-          fetch(`/api/courts?daysLater=3`),
-          fetch(`/api/courts?daysLater=4`)
+          // fetch(`/api/courts?daysLater=1`),
+          // fetch(`/api/courts?daysLater=2`),
+          // fetch(`/api/courts?daysLater=3`),
+          // fetch(`/api/courts?daysLater=4`)
         ]);
         
         const data = await Promise.all(
@@ -81,10 +81,10 @@ export default function Home() {
 
         setTimeSlots({
           0: processedData[0],
-          1: processedData[1],
-          2: processedData[2],
-          3: processedData[3],
-          4: processedData[4]
+          // 1: processedData[1],
+          // 2: processedData[2],
+          // 3: processedData[3],
+          // 4: processedData[4]
         });
         setIsLoading(false);
       } catch (error) {

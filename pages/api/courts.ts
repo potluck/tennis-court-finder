@@ -23,9 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("etTime: ", etTime, etTime.getHours());
     }
 
-    if (new Date().getHours() < 25) {
-      return res.status(200).json([]);
-    }
+    // if (new Date().getHours() < 25) {
+    //   return res.status(200).json([]);
+    // }
 
     // Get today's date in Eastern time
     const today = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -115,7 +115,9 @@ function getAvailableTimeSlots(
             results.push({ court: courtLabel, available: [] });
             return;
         }
-
+        if (courtLabel == "Court #1 (Singles Court)") {
+          console.log("bookings: ", bookings, "currentTime: ", currentTime, "endTime: ", endTime);
+        }
         bookings.forEach(booking => {
             const bookingStart = new Date(booking.Start);
             const bookingEnd = new Date(booking.End);
@@ -132,6 +134,10 @@ function getAvailableTimeSlots(
                 availableSlots.push(
                     `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
                 );
+                if (courtLabel == "Court #1 (Singles Court)") {
+                  console.log("pushing! ", currentTime, bookingStart, bookingEnd);
+                  console.log("availableSlots: ", availableSlots);
+                }
             }
             currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
         });
