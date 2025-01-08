@@ -23,9 +23,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log("etTime: ", etTime, etTime.getHours());
     }
 
-    // if (new Date().getHours() < 25) {
-    //   return res.status(200).json([]);
-    // }
 
     // Get today's date in Eastern time
     const today = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -87,7 +84,7 @@ function getAvailableTimeSlots(
     const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 
     if (daysToAdd === 0 && etTime.getHours() >= 8) {
-      startTime = etTime;
+      startTime = now;
     }
     
     // Group reservations by court
