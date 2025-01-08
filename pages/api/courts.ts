@@ -103,7 +103,6 @@ function parseAvailableTimeSlots(html: string, daysToAdd: number, includeHalfHou
       court: court
     });
   });
-  console.log("timeSlots pots: ", timeSlots);
 
   const availableTimes = getAvailableTimeslots(timeSlots, daysToAdd, includeHalfHourSlots);
   console.log("availableTimes: ", availableTimes);
