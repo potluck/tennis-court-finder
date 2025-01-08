@@ -46,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await browser.close();
 
     const availableTimeSlots = parseAvailableTimeSlots(html, daysToAdd, shouldIncludeHalfHourSlots);
+    console.log("availableTimeSlots: ", availableTimeSlots);
     res.status(200).json(availableTimeSlots);
     
   } catch (error) {
@@ -95,6 +96,7 @@ function parseAvailableTimeSlots(html: string, daysToAdd: number, includeHalfHou
       court: court
     });
   });
+  console.log("timeSlots pots: ", timeSlots);
 
   const availableTimes = getAvailableTimeslots(timeSlots, daysToAdd, includeHalfHourSlots);
   console.log("availableTimes: ", availableTimes);

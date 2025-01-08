@@ -66,20 +66,20 @@ export default function Home() {
         const includeHalfHourSlots = router.query.includeHalfHourSlots === 'true';
         const responses = await Promise.all([
           fetch(`/api/courts?daysLater=0&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=1&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=2&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=3&includeHalfHourSlots=${includeHalfHourSlots}`),
-          fetch(`/api/courts?daysLater=4&includeHalfHourSlots=${includeHalfHourSlots}`)
+          // fetch(`/api/courts?daysLater=1&includeHalfHourSlots=${includeHalfHourSlots}`),
+          // fetch(`/api/courts?daysLater=2&includeHalfHourSlots=${includeHalfHourSlots}`),
+          // fetch(`/api/courts?daysLater=3&includeHalfHourSlots=${includeHalfHourSlots}`),
+          // fetch(`/api/courts?daysLater=4&includeHalfHourSlots=${includeHalfHourSlots}`)
         ]);
         
         const data = await Promise.all(responses.map(res => res.json()));
         
         setTimeSlots({
           0: data[0],
-          1: data[1],
-          2: data[2],
-          3: data[3],
-          4: data[4]
+          // 1: data[1],
+          // 2: data[2],
+          // 3: data[3],
+          // 4: data[4]
         });
         setIsLoading(false);
       } catch (error) {
@@ -93,6 +93,8 @@ export default function Home() {
     }
   }, [router.isReady, router.query.includeHalfHourSlots]);
 
+
+  console.log("hey pots... ", timeSlots[0]);
   return (
     <div
       className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
