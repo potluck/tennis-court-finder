@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
-import { parseTime } from '@/utils/time';
 import { filterShortTimeSlots } from '@/utils/timeSlots';
 
 interface TimeSlot {

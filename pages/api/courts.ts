@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { setCache } from '@/utils/set-cache';
-import { parseTime } from '@/utils/time';
 
 interface CourtReservation {
   Start: string;
@@ -26,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const targetDate = new Date(todayET);
     targetDate.setDate(targetDate.getDate() + daysToAdd);
     
-    const reservations = await callCourtsAPI(targetDate, false);
+    const reservations = await callCourtsAPI(targetDate/*, false*/);
     
     const availableTimeSlots = getAvailableTimeSlots(reservations, targetDate, daysToAdd);
     
@@ -144,10 +143,10 @@ function formatTime(date: Date): string {
     });
 }
 
-async function callCourtsAPI(date: Date, testing: boolean = false): Promise<CourtReservation[]> {
-  if (testing) {
-    return Promise.resolve(getMockData());
-  }
+async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<CourtReservation[]> {
+  // if (testing) {
+  //   return Promise.resolve(getMockData());
+  // }
 
     // Base URL and parameters
     const baseUrl = 'https://memberschedulers.courtreserve.com/SchedulerApi/ReadExpandedApi';
@@ -209,937 +208,937 @@ async function callCourtsAPI(date: Date, testing: boolean = false): Promise<Cour
     }
 }
 
-function getMockData(): CourtReservation[] {
-  const mockData: CourtReservation[] = [
-    {
-      "Start": "2025-01-11T11:00:00Z",
-      "End": "2025-01-11T12:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T11:00:00Z",
-      "End": "2025-01-11T12:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T11:00:00Z",
-      "End": "2025-01-11T12:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T11:00:00Z",
-      "End": "2025-01-11T12:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T11:30:00Z",
-      "End": "2025-01-11T12:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T11:30:00Z",
-      "End": "2025-01-11T12:30:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T11:30:00Z",
-      "End": "2025-01-11T13:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T12:00:00Z",
-      "End": "2025-01-11T13:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T12:00:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T12:30:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T12:30:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T12:30:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T12:30:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T13:00:00Z",
-      "End": "2025-01-11T13:30:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T13:30:00Z",
-      "End": "2025-01-11T15:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T15:00:00Z",
-      "End": "2025-01-11T16:00:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T16:00:00Z",
-      "End": "2025-01-11T17:00:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T17:00:00Z",
-      "End": "2025-01-11T18:30:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T18:00:00Z",
-      "End": "2025-01-11T19:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T18:00:00Z",
-      "End": "2025-01-11T19:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T18:00:00Z",
-      "End": "2025-01-11T19:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T18:00:00Z",
-      "End": "2025-01-11T19:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T18:00:00Z",
-      "End": "2025-01-11T19:30:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T18:30:00Z",
-      "End": "2025-01-11T20:00:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T18:30:00Z",
-      "End": "2025-01-11T20:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T19:00:00Z",
-      "End": "2025-01-11T20:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T19:00:00Z",
-      "End": "2025-01-11T20:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T19:00:00Z",
-      "End": "2025-01-11T20:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T19:00:00Z",
-      "End": "2025-01-11T21:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T19:30:00Z",
-      "End": "2025-01-11T21:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T20:00:00Z",
-      "End": "2025-01-11T21:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T20:00:00Z",
-      "End": "2025-01-11T21:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T20:00:00Z",
-      "End": "2025-01-11T21:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T20:00:00Z",
-      "End": "2025-01-11T21:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T20:00:00Z",
-      "End": "2025-01-11T21:30:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T21:00:00Z",
-      "End": "2025-01-11T22:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T21:00:00Z",
-      "End": "2025-01-11T22:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T21:00:00Z",
-      "End": "2025-01-11T22:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T21:00:00Z",
-      "End": "2025-01-11T22:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T21:00:00Z",
-      "End": "2025-01-11T22:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T21:30:00Z",
-      "End": "2025-01-11T22:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T21:30:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T22:00:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T22:00:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T22:00:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T22:00:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T22:00:00Z",
-      "End": "2025-01-11T23:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-11T22:30:00Z",
-      "End": "2025-01-11T23:30:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-11T23:00:00Z",
-      "End": "2025-01-12T00:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #1 (Singles Court)"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #3"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #4"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #5"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-12T00:00:00Z",
-      "End": "2025-01-12T03:00:00Z",
-      "CourtLabel": "Court #7"
-  },
-  {
-      "Start": "2025-01-12T03:00:00Z",
-      "End": "2025-01-12T04:00:00Z",
-      "CourtLabel": "Court #6"
-  },
-  {
-      "Start": "2025-01-12T03:00:00Z",
-      "End": "2025-01-12T04:00:00Z",
-      "CourtLabel": "Court #2"
-  },
-  {
-      "Start": "2025-01-12T03:00:00Z",
-      "End": "2025-01-12T04:00:00Z",
-      "CourtLabel": "Court #5"
-  }
-];
+// function getMockData(): CourtReservation[] {
+//   const mockData: CourtReservation[] = [
+//     {
+//       "Start": "2025-01-11T11:00:00Z",
+//       "End": "2025-01-11T12:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T11:00:00Z",
+//       "End": "2025-01-11T12:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T11:00:00Z",
+//       "End": "2025-01-11T12:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T11:00:00Z",
+//       "End": "2025-01-11T12:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T11:30:00Z",
+//       "End": "2025-01-11T12:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T11:30:00Z",
+//       "End": "2025-01-11T12:30:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T11:30:00Z",
+//       "End": "2025-01-11T13:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T12:00:00Z",
+//       "End": "2025-01-11T13:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T12:00:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T12:30:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T12:30:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T12:30:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T12:30:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T13:00:00Z",
+//       "End": "2025-01-11T13:30:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T13:30:00Z",
+//       "End": "2025-01-11T15:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T15:00:00Z",
+//       "End": "2025-01-11T16:00:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T16:00:00Z",
+//       "End": "2025-01-11T17:00:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T17:00:00Z",
+//       "End": "2025-01-11T18:30:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T18:00:00Z",
+//       "End": "2025-01-11T19:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T18:00:00Z",
+//       "End": "2025-01-11T19:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T18:00:00Z",
+//       "End": "2025-01-11T19:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T18:00:00Z",
+//       "End": "2025-01-11T19:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T18:00:00Z",
+//       "End": "2025-01-11T19:30:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T18:30:00Z",
+//       "End": "2025-01-11T20:00:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T18:30:00Z",
+//       "End": "2025-01-11T20:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T19:00:00Z",
+//       "End": "2025-01-11T20:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T19:00:00Z",
+//       "End": "2025-01-11T20:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T19:00:00Z",
+//       "End": "2025-01-11T20:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T19:00:00Z",
+//       "End": "2025-01-11T21:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T19:30:00Z",
+//       "End": "2025-01-11T21:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T20:00:00Z",
+//       "End": "2025-01-11T21:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T20:00:00Z",
+//       "End": "2025-01-11T21:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T20:00:00Z",
+//       "End": "2025-01-11T21:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T20:00:00Z",
+//       "End": "2025-01-11T21:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T20:00:00Z",
+//       "End": "2025-01-11T21:30:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T21:00:00Z",
+//       "End": "2025-01-11T22:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T21:00:00Z",
+//       "End": "2025-01-11T22:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T21:00:00Z",
+//       "End": "2025-01-11T22:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T21:00:00Z",
+//       "End": "2025-01-11T22:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T21:00:00Z",
+//       "End": "2025-01-11T22:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T21:30:00Z",
+//       "End": "2025-01-11T22:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T21:30:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T22:00:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T22:00:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T22:00:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T22:00:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T22:00:00Z",
+//       "End": "2025-01-11T23:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-11T22:30:00Z",
+//       "End": "2025-01-11T23:30:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-11T23:00:00Z",
+//       "End": "2025-01-12T00:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #1 (Singles Court)"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #3"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #4"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #5"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-12T00:00:00Z",
+//       "End": "2025-01-12T03:00:00Z",
+//       "CourtLabel": "Court #7"
+//   },
+//   {
+//       "Start": "2025-01-12T03:00:00Z",
+//       "End": "2025-01-12T04:00:00Z",
+//       "CourtLabel": "Court #6"
+//   },
+//   {
+//       "Start": "2025-01-12T03:00:00Z",
+//       "End": "2025-01-12T04:00:00Z",
+//       "CourtLabel": "Court #2"
+//   },
+//   {
+//       "Start": "2025-01-12T03:00:00Z",
+//       "End": "2025-01-12T04:00:00Z",
+//       "CourtLabel": "Court #5"
+//   }
+// ];
 
-  return mockData;
-}
+//   return mockData;
+// }
 
-function getMockDataToday(): CourtReservation[] {
-  const mockData: CourtReservation[] = [
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T11:00:00Z',
-      End: '2025-01-08T12:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T12:00:00Z',
-      End: '2025-01-08T13:30:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T13:00:00Z',
-      End: '2025-01-08T14:30:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T13:30:00Z',
-      End: '2025-01-08T15:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T14:00:00Z',
-      End: '2025-01-08T15:30:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T14:00:00Z',
-      End: '2025-01-08T15:30:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T14:00:00Z',
-      End: '2025-01-08T16:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T14:00:00Z',
-      End: '2025-01-08T16:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T14:30:00Z',
-      End: '2025-01-08T15:30:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T15:00:00Z',
-      End: '2025-01-08T15:30:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T15:30:00Z',
-      End: '2025-01-08T16:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T15:30:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T15:30:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T15:30:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T16:00:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T16:00:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T16:00:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T16:30:00Z',
-      End: '2025-01-08T17:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T18:30:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T17:00:00Z',
-      End: '2025-01-08T19:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T18:00:00Z',
-      End: '2025-01-08T19:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T18:00:00Z',
-      End: '2025-01-08T19:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T18:00:00Z',
-      End: '2025-01-08T19:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T18:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T19:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T19:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T19:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T19:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T19:00:00Z',
-      End: '2025-01-08T20:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T20:00:00Z',
-      End: '2025-01-08T21:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T21:00:00Z',
-      End: '2025-01-08T22:30:00Z',
-      CourtLabel: 'Court #7'
-    },
-    // {
-    //   Start: '2025-01-08T22:00:00Z',
-    //   End: '2025-01-08T23:00:00Z',
-    //   CourtLabel: 'Court #6'
-    // },
-    {
-      Start: '2025-01-08T22:00:00Z',
-      End: '2025-01-08T23:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-08T22:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-08T22:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-08T22:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-08T22:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-08T22:30:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-08T23:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-08T23:00:00Z',
-      End: '2025-01-09T00:00:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:00:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-09T00:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #7'
-    },
-    {
-      Start: '2025-01-09T01:00:00Z',
-      End: '2025-01-09T01:30:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T02:30:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #6'
-    },
-    // {
-    //   Start: '2025-01-09T01:30:00Z',
-    //   End: '2025-01-09T03:30:00Z',
-    //   CourtLabel: 'Court #7'
-    // },
-    {
-      Start: '2025-01-09T01:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-09T02:30:00Z',
-      End: '2025-01-09T03:30:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #6'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #2'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #3'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #1 (Singles Court)'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #5'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:30:00Z',
-      CourtLabel: 'Court #4'
-    },
-    {
-      Start: '2025-01-09T03:30:00Z',
-      End: '2025-01-09T04:59:00Z',
-      CourtLabel: 'Court #7'
-    }  
-];
+// function getMockDataToday(): CourtReservation[] {
+//   const mockData: CourtReservation[] = [
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T11:00:00Z',
+//       End: '2025-01-08T12:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T12:00:00Z',
+//       End: '2025-01-08T13:30:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T13:00:00Z',
+//       End: '2025-01-08T14:30:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T13:30:00Z',
+//       End: '2025-01-08T15:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T14:00:00Z',
+//       End: '2025-01-08T15:30:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T14:00:00Z',
+//       End: '2025-01-08T15:30:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T14:00:00Z',
+//       End: '2025-01-08T16:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T14:00:00Z',
+//       End: '2025-01-08T16:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T14:30:00Z',
+//       End: '2025-01-08T15:30:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T15:00:00Z',
+//       End: '2025-01-08T15:30:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T15:30:00Z',
+//       End: '2025-01-08T16:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T15:30:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T15:30:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T15:30:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T16:00:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T16:00:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T16:00:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T16:30:00Z',
+//       End: '2025-01-08T17:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T18:30:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T17:00:00Z',
+//       End: '2025-01-08T19:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T18:00:00Z',
+//       End: '2025-01-08T19:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T18:00:00Z',
+//       End: '2025-01-08T19:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T18:00:00Z',
+//       End: '2025-01-08T19:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T18:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T19:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T19:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T19:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T19:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T19:00:00Z',
+//       End: '2025-01-08T20:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T20:00:00Z',
+//       End: '2025-01-08T21:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T21:00:00Z',
+//       End: '2025-01-08T22:30:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     // {
+//     //   Start: '2025-01-08T22:00:00Z',
+//     //   End: '2025-01-08T23:00:00Z',
+//     //   CourtLabel: 'Court #6'
+//     // },
+//     {
+//       Start: '2025-01-08T22:00:00Z',
+//       End: '2025-01-08T23:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-08T22:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-08T22:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-08T22:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-08T22:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-08T22:30:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-08T23:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-08T23:00:00Z',
+//       End: '2025-01-09T00:00:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:00:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-09T00:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #7'
+//     },
+//     {
+//       Start: '2025-01-09T01:00:00Z',
+//       End: '2025-01-09T01:30:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T02:30:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     // {
+//     //   Start: '2025-01-09T01:30:00Z',
+//     //   End: '2025-01-09T03:30:00Z',
+//     //   CourtLabel: 'Court #7'
+//     // },
+//     {
+//       Start: '2025-01-09T01:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-09T02:30:00Z',
+//       End: '2025-01-09T03:30:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #6'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #2'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #3'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #1 (Singles Court)'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #5'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:30:00Z',
+//       CourtLabel: 'Court #4'
+//     },
+//     {
+//       Start: '2025-01-09T03:30:00Z',
+//       End: '2025-01-09T04:59:00Z',
+//       CourtLabel: 'Court #7'
+//     }  
+// ];
 
-  return mockData;
-}
+//   return mockData;
+// }
 
