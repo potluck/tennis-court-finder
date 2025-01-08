@@ -57,14 +57,16 @@ function getDayLabel(daysLater: number): string {
 }
 
 export default function Home() {
+  const [rawTimeSlots, setRawTimeSlots] = useState<TimeSlotsByDay>({});
+  const [longOnlyTimeSlots, setLongOnlyTimeSlots] = useState<TimeSlotsByDay>({});
   const [timeSlots, setTimeSlots] = useState<TimeSlotsByDay>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [showHalfHourSlots, setShowHalfHourSlots] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const includeHalfHourSlots = router.query.includeHalfHourSlots === 'true';
         const responses = await Promise.all([
           fetch(`/api/courts?daysLater=0`),
           fetch(`/api/courts?daysLater=1`),
@@ -77,15 +79,16 @@ export default function Home() {
           responses.map(res => res.json() as Promise<TimeSlot[]>)
         );
 
-        const processedData = includeHalfHourSlots ? data : filterShortTimeSlots(data);
+        const rawData = {
+          0: data[0],
+          1: data[1],
+          2: data[2],
+          3: data[3],
+          4: data[4]
+        };
 
-        setTimeSlots({
-          0: processedData[0],
-          1: processedData[1],
-          2: processedData[2],
-          3: processedData[3],
-          4: processedData[4]
-        });
+        setRawTimeSlots(rawData);
+        setLongOnlyTimeSlots(filterShortTimeSlots(data));
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching time slots:', error);
@@ -96,15 +99,30 @@ export default function Home() {
     if (router.isReady) {
       fetchData();
     }
-  }, [router.isReady, router.query.includeHalfHourSlots]);
+  }, [router.isReady]);
 
+  useEffect(() => {
+    setTimeSlots(showHalfHourSlots ? rawTimeSlots : longOnlyTimeSlots);
+  }, [showHalfHourSlots, rawTimeSlots, longOnlyTimeSlots]);
+
+  const toggleHalfHourSlots = () => {
+    setShowHalfHourSlots(!showHalfHourSlots);
+  };
 
   return (
     <div
       className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
     >
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
-        <h1 className="text-3xl font-semibold text-gray-900 mb-6">McCarren Available Court Time Slots</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between w-full items-center gap-4">
+          <h1 className="text-3xl font-semibold text-gray-900">McCarren Available Court Time Slots</h1>
+          <button
+            onClick={toggleHalfHourSlots}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+          >
+            {showHalfHourSlots ? 'Hide 30-min slots' : 'Show 30-min slots'}
+          </button>
+        </div>
         {isLoading ? (
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
