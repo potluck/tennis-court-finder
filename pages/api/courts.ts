@@ -4,6 +4,16 @@ import puppeteer from 'puppeteer';
 import chromium from '@sparticuz/chromium'
 import puppeteerCore from 'puppeteer-core'
 
+const setCache = async (availableTimeSlots: { court: number; available: string[]; }[], daysToAdd: number) => {
+  try {
+    const res = await fetch(`/api/set-cache?daysToAdd=${daysToAdd}&courts=${JSON.stringify(availableTimeSlots)}`);
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { daysLater, includeHalfHourSlots } = req.query;
@@ -47,6 +57,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const availableTimeSlots = parseAvailableTimeSlots(html, daysToAdd, shouldIncludeHalfHourSlots);
     console.log("availableTimeSlots: ", availableTimeSlots);
+    
+    // Only cache courts that have available slots
+    const courtsWithAvailability = availableTimeSlots.filter(court => court.available.length > 0);
+    await setCache(courtsWithAvailability, daysToAdd);
+    
     res.status(200).json(availableTimeSlots);
     
   } catch (error) {
