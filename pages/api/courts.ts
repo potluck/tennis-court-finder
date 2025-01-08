@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { setCache } from '@/utils/set-cache';
+import { getCache } from '@/utils/get-cache';
 
 interface CourtReservation {
   Start: string;
@@ -12,12 +13,10 @@ interface CourtReserveResponse {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
   try {
     const { daysLater, forEmail } = req.query;
     const daysToAdd = parseInt(daysLater as string) || 0;
     
-
     // Get today's date in Eastern time
     const today = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     const todayET = new Date(today);
@@ -25,26 +24,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const targetDate = new Date(todayET);
     targetDate.setDate(targetDate.getDate() + daysToAdd);
     
-    const reservations = await callCourtsAPI(targetDate/*, false*/);
     
+    const cachedData = await getCache(targetDate);
+    if (cachedData) {
+      console.log("got cache!");
+      // Transform cached data back to the expected format
+      const availableTimeSlots = cachedData.map((court: { court: number; available: any; }) => ({
+        court: `Court #${court.court}${court.court === 1 ? ' (Singles Court)' : ''}`,
+        available: court.available
+      }));
+      return res.status(200).json(availableTimeSlots);
+    }
+
+    // If no cache hit, proceed with the original logic
+    const reservations = await callCourtsAPI(targetDate);
     const availableTimeSlots = getAvailableTimeSlots(reservations, targetDate, daysToAdd);
     
-    // // Only cache courts that have available slots
+    // Only cache courts that have available slots
     const courtsWithAvailability = availableTimeSlots
-        .filter(court => court.available.length > 0)
-        .map(court => ({
-            court: parseInt(court.court.replace(/\D/g, '')),
-            available: court.available
-        }));
+      .filter(court => court.available.length > 0)
+      .map(court => ({
+        court: parseInt(court.court.replace(/\D/g, '')),
+        available: court.available
+      }));
     await setCache(courtsWithAvailability, targetDate, forEmail === 'true');
     
     res.status(200).json(availableTimeSlots);
-    
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: 'Failed to fetch court reservations' });
   }
-} 
+}
 
 // Function to extract available timeslots
 function getAvailableTimeSlots(
@@ -147,65 +157,67 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
   // if (testing) {
   //   return Promise.resolve(getMockData());
   // }
+  console.log("calling courtreserve api");
+  // return Promise.resolve(getMockData());
 
-    // Base URL and parameters
-    const baseUrl = 'https://memberschedulers.courtreserve.com/SchedulerApi/ReadExpandedApi';
-    
-    // Static parameters
-    const params = {
-        id: '10243',
-        uiCulture: 'en-US',
-        requestData: 'eb6Pn1vtmodO/y4NZJEchGdVYPE729Bz1Gt1aKWVGfZ0SdVw/fQrnxsxMxElybabX3+5Qv5xLqRtaI39RtH2lWSZ/nr1F444auYnpYERzhRowItFLZRKDQA0ZQcz1Vvs4B5EJuAGbBI=',
-        sort: '',
-        group: '',
-        filter: '',
-    };
+  // Base URL and parameters
+  const baseUrl = 'https://memberschedulers.courtreserve.com/SchedulerApi/ReadExpandedApi';
+  
+  // Static parameters
+  const params = {
+      id: '10243',
+      uiCulture: 'en-US',
+      requestData: 'eb6Pn1vtmodO/y4NZJEchGdVYPE729Bz1Gt1aKWVGfZ0SdVw/fQrnxsxMxElybabX3+5Qv5xLqRtaI39RtH2lWSZ/nr1F444auYnpYERzhRowItFLZRKDQA0ZQcz1Vvs4B5EJuAGbBI=',
+      sort: '',
+      group: '',
+      filter: '',
+  };
 
-    // Dynamic JSON data based on input date
-    const jsonData = {
-        orgId: "10243",
-        TimeZone: "America/New_York",
-        KendoDate: {
-            Year: date.getFullYear(),
-            Month: date.getMonth() + 1, // JavaScript months are 0-based
-            Day: date.getDate()
-        },
-        UiCulture: "en-US",
-        CostTypeId: "104773",
-        CustomSchedulerId: "",
-        ReservationMinInterval: "60",
-        SelectedCourtIds: "34737,34738,34739,34740,34788,34789,34790",
-        SelectedInstructorIds: "",
-        MemberIds: "",
-        MemberFamilyId: "",
-        EmbedCodeId: "",
-        HideEmbedCodeReservationDetails: "True"
-    };
+  // Dynamic JSON data based on input date
+  const jsonData = {
+      orgId: "10243",
+      TimeZone: "America/New_York",
+      KendoDate: {
+          Year: date.getFullYear(),
+          Month: date.getMonth() + 1, // JavaScript months are 0-based
+          Day: date.getDate()
+      },
+      UiCulture: "en-US",
+      CostTypeId: "104773",
+      CustomSchedulerId: "",
+      ReservationMinInterval: "60",
+      SelectedCourtIds: "34737,34738,34739,34740,34788,34789,34790",
+      SelectedInstructorIds: "",
+      MemberIds: "",
+      MemberFamilyId: "",
+      EmbedCodeId: "",
+      HideEmbedCodeReservationDetails: "True"
+  };
 
-    // Construct URL with query parameters
-    const queryParams = new URLSearchParams({
-        ...params,
-        jsonData: JSON.stringify(jsonData)
-    });
+  // Construct URL with query parameters
+  const queryParams = new URLSearchParams({
+      ...params,
+      jsonData: JSON.stringify(jsonData)
+  });
 
-    const url = `${baseUrl}?${queryParams.toString()}`;
+  const url = `${baseUrl}?${queryParams.toString()}`;
 
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json() as CourtReserveResponse;
-        // Filter to only include the attributes we care about
-        return data.Data.map(({ Start, End, CourtLabel }) => ({
-            Start,
-            End,
-            CourtLabel
-        }));
-    } catch (error) {
-        console.error('Error fetching courts data:', error);
-        throw error;
-    }
+  try {
+      const response = await fetch(url);
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json() as CourtReserveResponse;
+      // Filter to only include the attributes we care about
+      return data.Data.map(({ Start, End, CourtLabel }) => ({
+          Start,
+          End,
+          CourtLabel
+      }));
+  } catch (error) {
+      console.error('Error fetching courts data:', error);
+      throw error;
+  }
 }
 
 // function getMockData(): CourtReservation[] {
