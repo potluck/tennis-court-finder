@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (cachedData) {
       console.log("got cache!");
       // Transform cached data back to the expected format
-      const availableTimeSlots = cachedData.map((court: { court: number; available: any; }) => ({
+      const availableTimeSlots = cachedData.map((court: { court: number; available: string[]; }) => ({
         court: `Court #${court.court}${court.court === 1 ? ' (Singles Court)' : ''}`,
         available: court.available
       }));

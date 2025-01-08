@@ -10,9 +10,9 @@ export async function setCache(courts: { court: number; available: string[]; }[]
       INSERT INTO court_lists (court_list, date_for, for_email) 
       VALUES (${courtsJson}, ${dateFor}, ${forEmail})
       RETURNING *
-    `;
+    `; // Returning * shows the data that we just inserted
 
-    console.log("rows: ", rows);
+    // console.log("rows: ", rows);
 
     return rows;
 
