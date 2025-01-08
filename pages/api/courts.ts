@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const cachedData = await getCache(targetDate);
     if (cachedData) {
-      console.log("got cache!");
+      // console.log("got cache!");
       // Transform cached data back to the expected format
       const availableTimeSlots = cachedData.map((court: { court: number; available: string[]; }) => ({
         court: `Court #${court.court}${court.court === 1 ? ' (Singles Court)' : ''}`,
@@ -112,9 +112,6 @@ function getAvailableTimeSlots(
             results.push({ court: courtLabel, available: [] });
             return;
         }
-        if (courtLabel == "Court #1 (Singles Court)") {
-          console.log("bookings: ", bookings, "currentTime: ", currentTime, "endTime: ", endTime);
-        }
         bookings.forEach(booking => {
             const bookingStart = new Date(booking.Start);
             const bookingEnd = new Date(booking.End);
@@ -131,10 +128,6 @@ function getAvailableTimeSlots(
                 availableSlots.push(
                     `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
                 );
-                if (courtLabel == "Court #1 (Singles Court)") {
-                  console.log("pushing! ", currentTime, bookingStart, bookingEnd);
-                  console.log("availableSlots: ", availableSlots);
-                }
             }
             currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
         });
