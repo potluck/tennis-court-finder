@@ -3,20 +3,12 @@ import { JSDOM } from 'jsdom';
 import puppeteer from 'puppeteer';
 import chromium from '@sparticuz/chromium'
 import puppeteerCore from 'puppeteer-core'
-
-const setCache = async (availableTimeSlots: { court: number; available: string[]; }[], daysToAdd: number) => {
-  try {
-    const res = await fetch(`/api/set-cache?daysToAdd=${daysToAdd}&courts=${JSON.stringify(availableTimeSlots)}`);
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.log(err);
-  }
-}
+import { setCache } from '@/utils/set-cache';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+
   try {
-    const { daysLater, includeHalfHourSlots } = req.query;
+    const { daysLater, includeHalfHourSlots, forEmail } = req.query;
     const daysToAdd = parseInt(daysLater as string) || 0;
     const shouldIncludeHalfHourSlots = includeHalfHourSlots === 'true';
     const reservationUrl = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
@@ -60,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Only cache courts that have available slots
     const courtsWithAvailability = availableTimeSlots.filter(court => court.available.length > 0);
-    await setCache(courtsWithAvailability, daysToAdd);
+    await setCache(courtsWithAvailability, daysToAdd, forEmail === 'true');
     
     res.status(200).json(availableTimeSlots);
     
@@ -154,9 +146,8 @@ function getAvailableTimeslots(
     minute: 'numeric',
     hour12: true
   }).format(now);
-  
-  // Set startOfDay based on daysToAdd
-  const startOfDay = daysToAdd === 0 
+
+  const startOfDay = daysToAdd === 0 && new Date().getTime() > new Date().setUTCHours(13, 0, 0, 0)
     ? parseTime(currentTimeET)
     : parseTime("8:00 AM");
     

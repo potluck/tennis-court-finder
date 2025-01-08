@@ -16,11 +16,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("Checking courts and sending email");
     // Fetch data for the next 5 days
     const responses = await Promise.all([
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=0'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=1'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=2'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=3'),
-      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=4')
+      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=0&forEmail=true'),
+      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=1&forEmail=true'),
+      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=2&forEmail=true'),
+      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=3&forEmail=true'),
+      fetch('https://tennis-court-finder-two.vercel.app/api/courts?daysLater=4&forEmail=true')
     ]);
     
     console.log("got responses");
