@@ -133,8 +133,12 @@ function getAvailableTimeslots(
 ): { court: number; available: string[] }[] {
   // Get current time in Eastern Time
   const now = new Date();
-  const etOptions = { timeZone: 'America/New_York' };
-  const currentTimeET = new Date(now.toLocaleString('en-US', etOptions));
+  const currentTimeET = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  }).format(now);
   
   // Set startOfDay based on daysToAdd
   const startOfDay = daysToAdd === 0 
