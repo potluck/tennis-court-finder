@@ -76,8 +76,23 @@ function getAvailableTimeSlots(
     const now = new Date();
     const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 
-    if (daysToAdd === 0 && etTime.getHours() >= 8) {
-      startTime = now;
+    if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < 22) {
+      // Round up to nearest 30 minutes
+      const minutes = now.getMinutes();
+      const roundedMinutes = Math.ceil(minutes / 30) * 30;
+
+      // Create new date to avoid modifying original
+      const roundedTime = new Date(now);
+      if (roundedMinutes === 60) {
+        roundedTime.setHours(roundedTime.getHours() + 1);
+        roundedTime.setMinutes(0);
+      } else {
+        roundedTime.setMinutes(roundedMinutes);
+      }
+      roundedTime.setSeconds(0);
+      roundedTime.setMilliseconds(0);
+
+      startTime = roundedTime;
     }
     
     // Group reservations by court
