@@ -25,21 +25,21 @@ const geistMono = Geist_Mono({
 function createTable(timeSlots: TimeSlot[], dayLabel: string) {
   return (
     <div className="w-full">
-      <h2 className="text-xl font-semibold mb-4">{dayLabel}</h2>
-      <table className="min-w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden">
+      <h2 className="text-xl font-semibold mb-4 dark:text-white">{dayLabel}</h2>
+      <table className="min-w-full border-collapse bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
         <thead>
-          <tr className="bg-gray-50 border-b">
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Court</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+          <tr className="bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Court</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {timeSlots
             .filter((slot: TimeSlot) => slot.available && slot.available.length > 0)
             .map((slot: TimeSlot) => (
-              <tr key={`${slot.court}-${slot.available.join('-')}`} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slot.court}</td>
-                <td className="px-6 py-4 whitespace-pre-line text-sm text-gray-900">
+              <tr key={`${slot.court}-${slot.available.join('-')}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{slot.court}</td>
+                <td className="px-6 py-4 whitespace-pre-line text-sm text-gray-900 dark:text-gray-100">
                   {slot.available.join('\n')}
                 </td>
               </tr>
@@ -111,21 +111,21 @@ export default function Home() {
 
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
+      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] dark:bg-gray-900`}
     >
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
         <div className="flex flex-col sm:flex-row sm:justify-between w-full items-center gap-4">
-          <h1 className="text-3xl font-semibold text-gray-900">McCarren Available Court Time Slots</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">McCarren Available Court Time Slots</h1>
           <button
             onClick={toggleHalfHourSlots}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm transition-colors dark:text-gray-100"
           >
             {showHalfHourSlots ? 'Hide 30-min slots' : 'Show 30-min slots'}
           </button>
         </div>
         {isLoading ? (
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
           </div>
         ) : (
           <div className="flex flex-col gap-8 w-full">
@@ -143,7 +143,7 @@ export default function Home() {
                   createTable(timeSlots[4], `Available Times for ${getDayLabel(4)}`)}
               </>
             ) : (
-              <p className="text-lg text-gray-600">No time slots available in the next 5 days</p>
+              <p className="text-lg text-gray-600 dark:text-gray-400">No time slots available in the next 5 days</p>
             )}
           </div>
         )}
