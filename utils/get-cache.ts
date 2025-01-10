@@ -15,7 +15,10 @@ export async function getCache(targetDate: Date) {
     `;
 
     if (rows.length > 0) {
-      return JSON.parse(rows[0].court_list.replace(/\\/g, ''));
+      return {
+        courtList: JSON.parse(rows[0].court_list.replace(/\\/g, '')),
+        id: rows[0].id
+      };
     }
     return null;
 

@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { setCache } from '@/utils/set-cache';
 import { getCache } from '@/utils/get-cache';
+import { updateCacheForEmail } from '@/utils/update-cache-for-email';
 
 interface CourtReservation {
   Start: string;
@@ -29,10 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (cachedData) {
       // console.log("got cache!");
       // Transform cached data back to the expected format
-      const availableTimeSlots = cachedData.map((court: { court: number; available: string[]; }) => ({
+      const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({
         court: `Court #${court.court}`,
         available: court.available
       }));
+      if (forEmail === 'true') {
+        await updateCacheForEmail(cachedData.id);
+      }
       return res.status(200).json(availableTimeSlots);
     }
 
