@@ -14,19 +14,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     });
 
-    // Query to get the most recent entry for each date where for_email is true
-    const { rows } = await sql`
+    // I don't know why I had to do this brute force, but it wasn't working with the date_for IN clause
+    const {rows} = await sql`
       WITH RankedEntries AS (
         SELECT 
           *,
           ROW_NUMBER() OVER (PARTITION BY date_for ORDER BY created_at DESC) as rn
         FROM court_lists
-        WHERE date_for = ANY(ARRAY[${dates.map(d => `'${d}'`).join(',')}]::text[])
+        WHERE (date_for = ${dates[0]} OR date_for = ${dates[1]} OR date_for = ${dates[2]} OR date_for = ${dates[3]} OR date_for = ${dates[4]})
         AND for_email = true
       )
       SELECT * FROM RankedEntries
       WHERE rn = 1
-      ORDER BY created_at DESC;
     `;
 
     // Transform the data to be more readable

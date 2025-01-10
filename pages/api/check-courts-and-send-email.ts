@@ -17,44 +17,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log("Checking courts and sending email");
     // Fetch data for the next 5 days
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // console.log("yo pots", `${baseUrl}/api/courts?daysLater=0&forEmail=true`);
+
     const responses = await Promise.all([
       fetch(`${baseUrl}/api/courts?daysLater=0&forEmail=true`),
       fetch(`${baseUrl}/api/courts?daysLater=1&forEmail=true`),
       fetch(`${baseUrl}/api/courts?daysLater=2&forEmail=true`),
       fetch(`${baseUrl}/api/courts?daysLater=3&forEmail=true`),
-      fetch(`${baseUrl}/api/courts?daysLater=4&forEmail=true`)
+      fetch(`${baseUrl}/api/courts?daysLater=4&forEmail=true`),
+      fetch(`${baseUrl}/api/last-email-entries`)
     ]);
     
-    console.log("got responses");
-    const data = await Promise.all(responses.map(res => res.json()));
-    // const data = {
-    //   "0": [
-    //     { court: "1", available: ["8:00 AM", "9:00 AM", "10:00 AM"] },
-    //     { court: "2", available: ["2:00 PM", "3:00 PM"] }
-    //   ],
-    //   "1": [
-    //     { court: "3", available: ["11:00 AM", "12:00 PM"] }
-    //   ],
-    //   "2": [
-    //     { court: "1", available: ["4:00 PM", "5:00 PM"] },
-    //     { court: "4", available: ["9:00 AM"] }
-    //   ],
-    //   "3": [],
-    //   "4": [
-    //     { court: "2", available: ["1:00 PM", "2:00 PM", "3:00 PM"] }
-    //   ]
-    // }
-    console.log("Fetched data pots");
+    // Destructure the responses - separate courts data from last email data
+    const [day0, day1, day2, day3, day4, lastEmailResponse] = responses;
+    const slotsData = await Promise.all([day0, day1, day2, day3, day4].map(res => res.json()));
+    const rows = await lastEmailResponse.json();
+    console.log("Fetched data pots", rows);
+
+
+    // Compare with last email data
+    const hasNewAvailability = compareWithLastEmailData(slotsData, rows);
 
     // Filter out short time slots from the data
-    const filteredData = filterShortTimeSlots(data);
+    const filteredData = filterShortTimeSlots(slotsData);
 
     const hasAvailableSlots = (filteredData as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
       daySlots.some(slot => slot.available && slot.available.length > 0)
     );
-    console.log("hasAvailableSlots pots", hasAvailableSlots);
 
-    if (hasAvailableSlots) {
+    console.log("hasAvailableSlots pots", hasAvailableSlots);
+    console.log("hasNewAvailability pots", hasNewAvailability);
+
+    if (hasAvailableSlots && hasNewAvailability) {
       const emailContent = formatEmailContent(filteredData);
       console.log("sending email pots");
       const response = await sendEmail(emailContent);
@@ -62,14 +56,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json({ message: "Email sent: " + response });
     }
     else {
-      res.status(200).json({ message: "No available slots" });
+      res.status(200).json({
+        message: hasAvailableSlots ? "No new availability since last email" : "No available slots"
+      });
     }
 
   } catch (error) {
     console.error('Error checking courts:', error);
+    res.status(500).json({ error: 'Failed to check courts and send email' });
   }
 }
 
+function compareWithLastEmailData(currentData: TimeSlot[][], lastEmailRows: any[]): boolean {
+  console.log("compareWithLastEmailData pots", currentData, lastEmailRows);
+  if (!lastEmailRows || lastEmailRows.length === 0) return true;
+
+  // Convert last email data from JSON strings back to objects
+  const lastEmailData = lastEmailRows.map(row => JSON.parse(row.court_list));
+
+  for (let dayIndex = 0; dayIndex < currentData.length; dayIndex++) {
+    const currentDaySlots = currentData[dayIndex];
+    const lastDaySlots = lastEmailData[dayIndex];
+
+    if (!lastDaySlots) return true;
+
+    for (const currentCourt of currentDaySlots) {
+      const courtNumber = parseInt(currentCourt.court.replace(/\D/g, ''));
+      const lastCourt = lastDaySlots.find((court: any) => court.court === courtNumber);
+
+      if (!lastCourt) return true;
+
+      // Check for new time slots
+      const newTimeSlots = currentCourt.available.filter(
+        time => !lastCourt.available.includes(time)
+      );
+
+      if (newTimeSlots.length > 0) return true;
+    }
+  }
+
+  return false;
+}
 
 function formatEmailContent(data: TimeSlot[][]): EmailContent {
   let htmlContent = `
@@ -114,7 +141,7 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
         // Add HTML version
         htmlContent += `
           <div class="court-slot">
-            <span class="court-number">Court ${slot.court}:</span>
+            <span class="court-number">${slot.court}:</span>
             <span class="time-slots">${slot.available.join(', ')}</span>
           </div>
         `;
@@ -140,6 +167,7 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
 }
 
 async function sendEmail(emailContent: EmailContent) {
+  return Promise.resolve("hello test no-op");
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
