@@ -87,13 +87,14 @@ export default function Home() {
           4: data[4]
         };
         setRawTimeSlots(rawData);
-        setLongOnlyTimeSlots(filterShortTimeSlots(data));
+        const filteredData = filterShortTimeSlots(data);
+        setLongOnlyTimeSlots(filteredData);
 
-        if (!Object.entries(longOnlyTimeSlots).some(([, slots]) => slots && slots.some((slot: TimeSlot) => slot.available && slot.available.length > 0))) {
+        if (!Object.entries(filteredData).some(([, slots]) => slots && slots.some((slot: TimeSlot) => slot.available && slot.available.length > 0))) {
           setShowHalfHourSlots(true);
         }
 
-          setIsLoading(false);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching time slots:', error);
         setIsLoading(false);

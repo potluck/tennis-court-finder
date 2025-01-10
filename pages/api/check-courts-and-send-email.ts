@@ -12,6 +12,11 @@ interface EmailContent {
   text: string;
 }
 
+interface LastEmailCourt {
+  court: number;
+  available: string[];
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {  
   try {
     console.log("Checking courts and sending email");
@@ -62,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEmailRows: any[]): boolean {
+function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEmailRows: { court_list: string | LastEmailCourt[] }[]): boolean {
   if (!lastEmailRows || lastEmailRows.length === 0) return true;
 
   // Convert last email data from JSON strings back to objects with error handling
@@ -84,8 +89,7 @@ function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEma
 
     for (const currentCourt of currentDaySlots) {
       const courtNumber = parseInt(currentCourt.court.replace(/\D/g, ''));
-      const lastCourt = lastDaySlots.find((court: any) => court.court === courtNumber);
-
+      const lastCourt = lastDaySlots.find((court: LastEmailCourt) => court.court === courtNumber);
 
       if (currentCourt.available.length > 0 && !lastCourt) return true;
 
