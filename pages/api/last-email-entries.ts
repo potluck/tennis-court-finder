@@ -26,14 +26,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       )
       SELECT * FROM RankedEntries
       WHERE rn = 1
+      ORDER BY right(date_for, 2) asc
     `;
 
-    // Transform the data to be more readable
     const formattedRows = rows.map(row => ({
       id: row.id,
-      dateFor: row.date_for,
-      courtList: JSON.parse(row.court_list.replace(/\\/g, '')),
-      createdAt: row.created_at
+      date_for: row.date_for,
+      court_list: JSON.parse(row.court_list.replace(/\\/g, '')),
+      created_at: row.created_at
     }));
 
     res.status(200).json(formattedRows);

@@ -32,11 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [day0, day1, day2, day3, day4, lastEmailResponse] = responses;
     const slotsData = await Promise.all([day0, day1, day2, day3, day4].map(res => res.json()));
     const rows = await lastEmailResponse.json();
-    console.log("Fetched data pots", rows);
+    // console.log("Fetched data pots", JSON.stringify(rows, null, 2));
 
 
     // Compare with last email data
-    const hasNewAvailability = compareWithLastEmailData(slotsData, rows);
+    const hasNewAvailability = hasNewAvailabilityAfterLastEmailData(slotsData, rows);
 
     // Filter out short time slots from the data
     const filteredData = filterShortTimeSlots(slotsData);
@@ -45,14 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       daySlots.some(slot => slot.available && slot.available.length > 0)
     );
 
-    console.log("hasAvailableSlots pots", hasAvailableSlots);
-    console.log("hasNewAvailability pots", hasNewAvailability);
-
     if (hasAvailableSlots && hasNewAvailability) {
       const emailContent = formatEmailContent(filteredData);
-      console.log("sending email pots");
       const response = await sendEmail(emailContent);
-      console.log("sent email pots " + response);
       res.status(200).json({ message: "Email sent: " + response });
     }
     else {
@@ -67,15 +62,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-function compareWithLastEmailData(currentData: TimeSlot[][], lastEmailRows: any[]): boolean {
-  console.log("compareWithLastEmailData pots", currentData, lastEmailRows);
+function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEmailRows: any[]): boolean {
   if (!lastEmailRows || lastEmailRows.length === 0) return true;
 
-  // Convert last email data from JSON strings back to objects
-  const lastEmailData = lastEmailRows.map(row => JSON.parse(row.court_list));
+  // Convert last email data from JSON strings back to objects with error handling
+  const lastEmailData = lastEmailRows.map(row => {
+      // Handle case where court_list is already an object
+      return typeof row.court_list === 'string'
+        ? JSON.parse(row.court_list || '[]')
+        : row.court_list || [];
+  });
 
   for (let dayIndex = 0; dayIndex < currentData.length; dayIndex++) {
     const currentDaySlots = currentData[dayIndex];
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() + dayIndex);
+
     const lastDaySlots = lastEmailData[dayIndex];
 
     if (!lastDaySlots) return true;
@@ -84,7 +86,8 @@ function compareWithLastEmailData(currentData: TimeSlot[][], lastEmailRows: any[
       const courtNumber = parseInt(currentCourt.court.replace(/\D/g, ''));
       const lastCourt = lastDaySlots.find((court: any) => court.court === courtNumber);
 
-      if (!lastCourt) return true;
+
+      if (currentCourt.available.length > 0 && !lastCourt) return true;
 
       // Check for new time slots
       const newTimeSlots = currentCourt.available.filter(

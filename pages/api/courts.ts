@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const cachedData = await getCache(targetDate);
     if (cachedData) {
-      // console.log("got cache!");
+      console.log("got cache!");
       // Transform cached data back to the expected format
       const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({
         court: `Court #${court.court}`,
