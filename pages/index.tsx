@@ -86,10 +86,14 @@ export default function Home() {
           3: data[3],
           4: data[4]
         };
-
         setRawTimeSlots(rawData);
         setLongOnlyTimeSlots(filterShortTimeSlots(data));
-        setIsLoading(false);
+
+        if (!Object.entries(longOnlyTimeSlots).some(([, slots]) => slots && slots.some((slot: TimeSlot) => slot.available && slot.available.length > 0))) {
+          setShowHalfHourSlots(true);
+        }
+
+          setIsLoading(false);
       } catch (error) {
         console.error('Error fetching time slots:', error);
         setIsLoading(false);
