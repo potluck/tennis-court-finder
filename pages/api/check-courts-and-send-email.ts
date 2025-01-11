@@ -78,6 +78,8 @@ function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEma
         : row.court_list || [];
   });
 
+  console.log("yo pots", JSON.stringify(currentData, null, 2), JSON.stringify(lastEmailData, null, 2));
+
   for (let dayIndex = 0; dayIndex < currentData.length; dayIndex++) {
     const currentDaySlots = currentData[dayIndex];
     const currentDate = new Date();
@@ -106,12 +108,17 @@ function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEma
 }
 
 function formatEmailContent(data: TimeSlot[][]): EmailContent {
+  const bookingLink = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
+
   let htmlContent = `
     <html>
       <head>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           h1 { color: #2c5282; margin-bottom: 20px; }
+          .booking-link { margin-top: 30px; }
+          .booking-link a { color: #4299e1; text-decoration: none; }
+          .booking-link a:hover { text-decoration: underline; }
           .day-section { margin-bottom: 30px; }
           .day-header { color: #2d3748; font-size: 20px; margin-bottom: 10px; }
           .court-slot { margin-left: 20px; margin-bottom: 5px; }
@@ -122,6 +129,7 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
       <body>
         <h1>Available Court Times</h1>
   `;
+
   let textContent = 'Available Court Times:\n\n';
 
   data.forEach((daySlots: TimeSlot[], index) => {
@@ -135,25 +143,21 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
 
     const availableSlots = daySlots.filter(slot => slot.available && slot.available.length > 0);
     if (availableSlots.length > 0) {
-      // Add HTML content
       htmlContent += `
         <div class="day-section">
           <h2 class="day-header">${dayLabel}</h2>
       `;
-      
-      // Add text content
+
       textContent += `${dayLabel}:\n`;
       
       availableSlots.forEach(slot => {
-        // Add HTML version
         htmlContent += `
           <div class="court-slot">
             <span class="court-number">${slot.court}:</span>
             <span class="time-slots">${slot.available.join(', ')}</span>
           </div>
         `;
-        
-        // Add text version
+
         textContent += `  Court ${slot.court}: ${slot.available.join(', ')}\n`;
       });
       
@@ -162,10 +166,16 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
     }
   });
 
+  // Add booking link at the end
   htmlContent += `
+        <div class="booking-link">
+          <a href="${bookingLink}">Book here</a>
+        </div>
       </body>
     </html>
   `;
+
+  textContent += `\nBook a court here: ${bookingLink}`;
 
   return {
     html: htmlContent,
@@ -194,7 +204,7 @@ async function sendEmail(emailContent: EmailContent) {
 
   const mailOptions = {
     from: "potluck.mittal@gmail.com",
-    to: "potluck.mittal@gmail.com, summer.than@gmail.com, azy@google.com",
+    to: "potluck.mittal@gmail.com",
     subject: `McCarren Tennis Courts Availability Update - ${today}`,
     text: emailContent.text,
     html: emailContent.html
