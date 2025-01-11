@@ -174,7 +174,6 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
 }
 
 async function sendEmail(emailContent: EmailContent) {
-  return Promise.resolve("hello test no-op");
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     host: "smtp.gmail.com",
