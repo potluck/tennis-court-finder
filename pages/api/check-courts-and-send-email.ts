@@ -12,11 +12,6 @@ interface EmailContent {
   text: string;
 }
 
-interface LastEmailCourt {
-  court: number;
-  available: string[];
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {  
   try {
     console.log("Checking courts and sending email");
@@ -39,18 +34,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rows = await lastEmailResponse.json();
     // console.log("Fetched data pots", JSON.stringify(rows, null, 2));
 
-
-    // Compare with last email data
-    const hasNewAvailability = hasNewAvailabilityAfterLastEmailData(slotsData, rows);
-
     // Filter out short time slots from the data
     const filteredData = filterShortTimeSlots(slotsData);
+
+    const filteredLastEmailRows = filterShortTimeSlots(rows.map((row: { court_list: any; }) => row.court_list));
+
 
     const hasAvailableSlots = (filteredData as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
       daySlots.some(slot => slot.available && slot.available.length > 0)
     );
 
-    if (hasAvailableSlots && hasNewAvailability) {
+    if (hasAvailableSlots && hasNewAvailabilityAfterLastEmailData(filteredData, filteredLastEmailRows)) {
       const emailContent = formatEmailContent(filteredData);
       const response = await sendEmail(emailContent);
       res.status(200).json({ message: "Email sent: " + response });
@@ -67,16 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEmailRows: { court_list: string | LastEmailCourt[] }[]): boolean {
-  if (!lastEmailRows || lastEmailRows.length === 0) return true;
-
-  // Convert last email data from JSON strings back to objects with error handling
-  const lastEmailData = lastEmailRows.map(row => {
-      // Handle case where court_list is already an object
-      return typeof row.court_list === 'string'
-        ? JSON.parse(row.court_list || '[]')
-        : row.court_list || [];
-  });
+function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEmailData: TimeSlot[][]): boolean {
+  if (!lastEmailData || lastEmailData.length === 0) return true;
 
   console.log("yo pots", JSON.stringify(currentData, null, 2), JSON.stringify(lastEmailData, null, 2));
 
@@ -91,13 +77,13 @@ function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEma
 
     for (const currentCourt of currentDaySlots) {
       const courtNumber = parseInt(currentCourt.court.replace(/\D/g, ''));
-      const lastCourt = lastDaySlots.find((court: LastEmailCourt) => court.court === courtNumber);
+      const lastCourt = lastDaySlots.find((court: TimeSlot) => parseInt(court.court) === courtNumber);
 
       if (currentCourt.available.length > 0 && !lastCourt) return true;
 
       // Check for new time slots
       const newTimeSlots = currentCourt.available.filter(
-        time => !lastCourt.available.includes(time)
+        time => !lastCourt?.available.includes(time)
       );
 
       if (newTimeSlots.length > 0) return true;
@@ -204,7 +190,7 @@ async function sendEmail(emailContent: EmailContent) {
 
   const mailOptions = {
     from: "potluck.mittal@gmail.com",
-    to: "potluck.mittal@gmail.com", //, summer.than@gmail.com, azy@google.com",
+    to: "potluck.mittal@gmail.com, summer.than@gmail.com, azy@google.com",
     subject: `McCarren Tennis Courts Availability Update - ${today}`,
     text: emailContent.text,
     html: emailContent.html
