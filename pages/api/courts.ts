@@ -69,26 +69,27 @@ function getAvailableTimeSlots(
 
     const results: { court: string; available: string[] }[] = [];
 
-    // Start time: 13:00 UTC same day
-    let startTime = new Date(targetDate);
-    startTime.setUTCHours(13, 0, 0, 0);
+  const targetDayOfWeek = targetDate.getDay();
 
-    // End time: 03:00 UTC next day
-    const endTime = new Date(targetDate);
-    endTime.setUTCDate(endTime.getUTCDate() + 1);
-    endTime.setUTCHours(3, 0, 0, 0);
+  // Start time: 13:00 UTC same day (8AM Eastern)
+  let startTime = new Date(targetDate);
+  startTime.setUTCHours(13, 0, 0, 0);
+
+  // End time: 03:00 UTC next day (10PM Eastern) or 8PM Eastern on weekends
+  const endTime = new Date(targetDate);
+  endTime.setUTCDate(endTime.getUTCDate() + 1);
+  endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 1 : 3, 0, 0, 0);
 
 
-    // // Get current time in Eastern Time
+    // For "today", start time should be now (don't look for time slots earlier than now)
     const now = new Date();
     const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 
-    if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < 22) {
+    if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < (targetDayOfWeek === 0 || targetDayOfWeek === 6? 20 : 22)) {
       // Round up to nearest 30 minutes
       const minutes = now.getMinutes();
       const roundedMinutes = Math.ceil(minutes / 30) * 30;
 
-      // Create new date to avoid modifying original
       const roundedTime = new Date(now);
       if (roundedMinutes === 60) {
         roundedTime.setHours(roundedTime.getHours() + 1);
@@ -100,7 +101,7 @@ function getAvailableTimeSlots(
       roundedTime.setMilliseconds(0);
 
       startTime = roundedTime;
-    } else if (daysToAdd === 0 && etTime.getHours() >= 22) {
+    } else if (daysToAdd === 0 && etTime.getHours() >= (targetDayOfWeek === 0 || targetDayOfWeek === 6?  20 : 22)) {
       return results;
     }
     
