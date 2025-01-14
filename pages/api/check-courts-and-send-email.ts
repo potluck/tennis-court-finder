@@ -45,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     if (hasAvailableSlots && hasNewAvailabilityAfterLastEmailData(filteredData, filteredLastEmailRows)) {
+      //TODO: update day0 - day4 in the db, set sent_email to true. Update last-email-entries to just look for sent_email
       const emailContent = formatEmailContent(filteredData);
       const response = await sendEmail(emailContent);
       res.status(200).json({ message: "Email sent: " + response });
