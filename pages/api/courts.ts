@@ -13,6 +13,7 @@ interface CourtReserveResponse {
   Data: CourtReservation[];
 }
 
+// TODO: Pull out logic into util function that we can call from check-courts-and-send-email.ts - doesn't need to be over the wire
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { daysLater, forEmail } = req.query;

@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { NextApiRequest, NextApiResponse } from 'next';
 
+// TODO: Turn this into a util function - doesn't need to be over the wire
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Get the last 5 days' dates in the required format
