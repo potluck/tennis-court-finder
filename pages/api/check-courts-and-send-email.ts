@@ -12,7 +12,7 @@ interface EmailContent {
   text: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {  
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     console.log("Checking courts and sending email");
     // Fetch data for the next 5 days
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fetch(`${baseUrl}/api/courts?daysLater=4&forEmail=true`),
       fetch(`${baseUrl}/api/last-email-entries`)
     ]);
-    
+
     // Destructure the responses - separate courts data from last email data
     const [day0, day1, day2, day3, day4, lastEmailResponse] = responses;
     const slotsData = await Promise.all([day0, day1, day2, day3, day4].map(res => res.json()));
@@ -121,11 +121,11 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
   data.forEach((daySlots: TimeSlot[], index) => {
     const date = new Date();
     date.setDate(date.getDate() + index);
-    const dayLabel = date.toLocaleDateString('en-US', { 
+    const dayLabel = date.toLocaleDateString('en-US', {
       timeZone: 'America/New_York',
-      weekday: 'long', 
-      month: 'short', 
-      day: 'numeric' 
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
     });
 
     const availableSlots = daySlots.filter(slot => slot.available && slot.available.length > 0);
@@ -136,7 +136,7 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
       `;
 
       textContent += `${dayLabel}:\n`;
-      
+
       availableSlots.forEach(slot => {
         htmlContent += `
           <div class="court-slot">
@@ -147,7 +147,7 @@ function formatEmailContent(data: TimeSlot[][]): EmailContent {
 
         textContent += `  Court ${slot.court}: ${slot.available.join(', ')}\n`;
       });
-      
+
       htmlContent += `</div>`;
       textContent += '\n';
     }
@@ -182,7 +182,7 @@ async function sendEmail(emailContent: EmailContent) {
     },
   });
 
-  const today = new Date().toLocaleString('en-US', { 
+  const today = new Date().toLocaleString('en-US', {
     timeZone: 'America/New_York',
     month: 'short',
     day: 'numeric',
@@ -201,15 +201,15 @@ async function sendEmail(emailContent: EmailContent) {
   await new Promise((resolve, reject) => {
     // send mail
     transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-          console.error("Error sending email: ", err);
-          returnInfo = "Error sending email: " + err;;
-          reject(err);
-        } else {
-            console.log(info);
-            returnInfo = "" + info.response;
-            resolve(info);
-        }
+      if (err) {
+        console.error("Error sending email: ", err);
+        returnInfo = "Error sending email: " + err;;
+        reject(err);
+      } else {
+        console.log(info);
+        returnInfo = "" + info.response;
+        resolve(info);
+      }
     });
   });
   return returnInfo;

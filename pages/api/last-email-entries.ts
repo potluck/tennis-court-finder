@@ -7,15 +7,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const dates = Array.from({ length: 5 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() + i);
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric'
       });
     });
 
     // I don't know why I had to do this brute force, but it wasn't working with the date_for IN clause
-    const {rows} = await sql`
+    const { rows } = await sql`
       WITH RankedEntries AS (
         SELECT 
           *,

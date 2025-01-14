@@ -24,8 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Add days to the date
     const targetDate = new Date(todayET);
     targetDate.setDate(targetDate.getDate() + daysToAdd);
-    
-    
+
+
     const cachedData = await getCache(targetDate);
     if (cachedData) {
       console.log("got cache!");
@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // If no cache hit, proceed with the original logic
     const reservations = await callCourtsAPI(targetDate);
     const availableTimeSlots = getAvailableTimeSlots(reservations, targetDate, daysToAdd);
-    
+
     // Only cache courts that have available slots
     const courtsWithAvailability = availableTimeSlots
       .filter(court => court.available.length > 0)
@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         available: court.available
       }));
     await setCache(courtsWithAvailability, targetDate, forEmail === 'true');
-    
+
     res.status(200).json(availableTimeSlots);
   } catch (error) {
     console.error("Error:", error);
@@ -62,12 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 // Function to extract available timeslots
 function getAvailableTimeSlots(
-    reservations: CourtReservation[],
-    targetDate: Date,
-    daysToAdd: number
+  reservations: CourtReservation[],
+  targetDate: Date,
+  daysToAdd: number
 ): { court: string; available: string[] }[] {
 
-    const results: { court: string; available: string[] }[] = [];
+  const results: { court: string; available: string[] }[] = [];
 
   const targetDayOfWeek = targetDate.getDay();
 
@@ -81,98 +81,98 @@ function getAvailableTimeSlots(
   endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 1 : 3, 0, 0, 0);
 
 
-    // For "today", start time should be now (don't look for time slots earlier than now)
-    const now = new Date();
-    const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  // For "today", start time should be now (don't look for time slots earlier than now)
+  const now = new Date();
+  const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 
-    if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < (targetDayOfWeek === 0 || targetDayOfWeek === 6? 20 : 22)) {
-      // Round up to nearest 30 minutes
-      const minutes = now.getMinutes();
-      const roundedMinutes = Math.ceil(minutes / 30) * 30;
+  if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
+    // Round up to nearest 30 minutes
+    const minutes = now.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 30) * 30;
 
-      const roundedTime = new Date(now);
-      if (roundedMinutes === 60) {
-        roundedTime.setHours(roundedTime.getHours() + 1);
-        roundedTime.setMinutes(0);
-      } else {
-        roundedTime.setMinutes(roundedMinutes);
-      }
-      roundedTime.setSeconds(0);
-      roundedTime.setMilliseconds(0);
-
-      startTime = roundedTime;
-    } else if (daysToAdd === 0 && etTime.getHours() >= (targetDayOfWeek === 0 || targetDayOfWeek === 6?  20 : 22)) {
-      return results;
+    const roundedTime = new Date(now);
+    if (roundedMinutes === 60) {
+      roundedTime.setHours(roundedTime.getHours() + 1);
+      roundedTime.setMinutes(0);
+    } else {
+      roundedTime.setMinutes(roundedMinutes);
     }
-    
-    // Group reservations by court
-    const courtReservations = new Map<string, CourtReservation[]>();
-    
-    reservations.forEach(reservation => {
-        if (!courtReservations.has(reservation.CourtLabel)) {
-            courtReservations.set(reservation.CourtLabel, []);
-        }
-        courtReservations.get(reservation.CourtLabel)?.push(reservation);
-    });
-    
-    // Process each court
-    courtReservations.forEach((bookings, courtLabel) => {
-        // Sort bookings by start time
-        bookings.sort((a, b) => new Date(a.Start).getTime() - new Date(b.Start).getTime());
+    roundedTime.setSeconds(0);
+    roundedTime.setMilliseconds(0);
 
-        const availableSlots: string[] = [];
-        let currentTime = startTime;
+    startTime = roundedTime;
+  } else if (daysToAdd === 0 && etTime.getHours() >= (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
+    return results;
+  }
 
-        // Skip if we're already past end time
-        if (currentTime >= endTime) {
-            results.push({ court: courtLabel, available: [] });
-            return;
-        }
-        bookings.forEach(booking => {
-            const bookingStart = new Date(booking.Start);
-            const bookingEnd = new Date(booking.End);
+  // Group reservations by court
+  const courtReservations = new Map<string, CourtReservation[]>();
 
-            // Skip if we're already past end time
-            if (currentTime >= endTime) return;
+  reservations.forEach(reservation => {
+    if (!courtReservations.has(reservation.CourtLabel)) {
+      courtReservations.set(reservation.CourtLabel, []);
+    }
+    courtReservations.get(reservation.CourtLabel)?.push(reservation);
+  });
 
-            if (currentTime < bookingStart && currentTime < endTime) {
-                // Adjust end time to not exceed 10 PM ET
-                const slotEnd = bookingStart.getTime() > endTime.getTime() 
-                    ? endTime 
-                    : bookingStart;
+  // Process each court
+  courtReservations.forEach((bookings, courtLabel) => {
+    // Sort bookings by start time
+    bookings.sort((a, b) => new Date(a.Start).getTime() - new Date(b.Start).getTime());
 
-                availableSlots.push(
-                    `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
-                );
-            }
-            currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
-        });
+    const availableSlots: string[] = [];
+    let currentTime = startTime;
 
-        // Check for available time after last booking, but before 10 PM ET
-        if (currentTime < endTime) {
-            availableSlots.push(
-                `${formatTime(currentTime)} to ${formatTime(endTime)}`
-            );
-        }
+    // Skip if we're already past end time
+    if (currentTime >= endTime) {
+      results.push({ court: courtLabel, available: [] });
+      return;
+    }
+    bookings.forEach(booking => {
+      const bookingStart = new Date(booking.Start);
+      const bookingEnd = new Date(booking.End);
 
-        results.push({ 
-            court: courtLabel, 
-            available: availableSlots 
-        });
+      // Skip if we're already past end time
+      if (currentTime >= endTime) return;
+
+      if (currentTime < bookingStart && currentTime < endTime) {
+        // Adjust end time to not exceed 10 PM ET
+        const slotEnd = bookingStart.getTime() > endTime.getTime()
+          ? endTime
+          : bookingStart;
+
+        availableSlots.push(
+          `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
+        );
+      }
+      currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
     });
 
-    // Sort results by court label
-    return results.sort((a, b) => a.court.localeCompare(b.court));
+    // Check for available time after last booking, but before 10 PM ET
+    if (currentTime < endTime) {
+      availableSlots.push(
+        `${formatTime(currentTime)} to ${formatTime(endTime)}`
+      );
+    }
+
+    results.push({
+      court: courtLabel,
+      available: availableSlots
+    });
+  });
+
+  // Sort results by court label
+  return results.sort((a, b) => a.court.localeCompare(b.court));
 }
 
 // Helper function to format time in ET
 function formatTime(date: Date): string {
-    return date.toLocaleTimeString('en-US', {
-        timeZone: 'America/New_York',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    });
+  return date.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<CourtReservation[]> {
@@ -184,61 +184,61 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
 
   // Base URL and parameters
   const baseUrl = 'https://memberschedulers.courtreserve.com/SchedulerApi/ReadExpandedApi';
-  
+
   // Static parameters
   const params = {
-      id: '10243',
-      uiCulture: 'en-US',
-      requestData: 'eb6Pn1vtmodO/y4NZJEchGdVYPE729Bz1Gt1aKWVGfZ0SdVw/fQrnxsxMxElybabX3+5Qv5xLqRtaI39RtH2lWSZ/nr1F444auYnpYERzhRowItFLZRKDQA0ZQcz1Vvs4B5EJuAGbBI=',
-      sort: '',
-      group: '',
-      filter: '',
+    id: '10243',
+    uiCulture: 'en-US',
+    requestData: 'eb6Pn1vtmodO/y4NZJEchGdVYPE729Bz1Gt1aKWVGfZ0SdVw/fQrnxsxMxElybabX3+5Qv5xLqRtaI39RtH2lWSZ/nr1F444auYnpYERzhRowItFLZRKDQA0ZQcz1Vvs4B5EJuAGbBI=',
+    sort: '',
+    group: '',
+    filter: '',
   };
 
   // Dynamic JSON data based on input date
   const jsonData = {
-      orgId: "10243",
-      TimeZone: "America/New_York",
-      KendoDate: {
-          Year: date.getFullYear(),
-          Month: date.getMonth() + 1, // JavaScript months are 0-based
-          Day: date.getDate()
-      },
-      UiCulture: "en-US",
-      CostTypeId: "104773",
-      CustomSchedulerId: "",
-      ReservationMinInterval: "60",
-      SelectedCourtIds: "34737,34738,34739,34740,34788,34789,34790",
-      SelectedInstructorIds: "",
-      MemberIds: "",
-      MemberFamilyId: "",
-      EmbedCodeId: "",
-      HideEmbedCodeReservationDetails: "True"
+    orgId: "10243",
+    TimeZone: "America/New_York",
+    KendoDate: {
+      Year: date.getFullYear(),
+      Month: date.getMonth() + 1, // JavaScript months are 0-based
+      Day: date.getDate()
+    },
+    UiCulture: "en-US",
+    CostTypeId: "104773",
+    CustomSchedulerId: "",
+    ReservationMinInterval: "60",
+    SelectedCourtIds: "34737,34738,34739,34740,34788,34789,34790",
+    SelectedInstructorIds: "",
+    MemberIds: "",
+    MemberFamilyId: "",
+    EmbedCodeId: "",
+    HideEmbedCodeReservationDetails: "True"
   };
 
   // Construct URL with query parameters
   const queryParams = new URLSearchParams({
-      ...params,
-      jsonData: JSON.stringify(jsonData)
+    ...params,
+    jsonData: JSON.stringify(jsonData)
   });
 
   const url = `${baseUrl}?${queryParams.toString()}`;
 
   try {
-      const response = await fetch(url);
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json() as CourtReserveResponse;
-      // Filter to only include the attributes we care about
-      return data.Data.map(({ Start, End, CourtLabel }) => ({
-          Start,
-          End,
-          CourtLabel: CourtLabel.includes('Singles Court') ? 'Court #1' : CourtLabel
-      }));
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json() as CourtReserveResponse;
+    // Filter to only include the attributes we care about
+    return data.Data.map(({ Start, End, CourtLabel }) => ({
+      Start,
+      End,
+      CourtLabel: CourtLabel.includes('Singles Court') ? 'Court #1' : CourtLabel
+    }));
   } catch (error) {
-      console.error('Error fetching courts data:', error);
-      throw error;
+    console.error('Error fetching courts data:', error);
+    throw error;
   }
 }
 
