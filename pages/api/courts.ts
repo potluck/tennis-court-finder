@@ -66,6 +66,9 @@ function getAvailableTimeSlots(
     targetDate: Date,
     daysToAdd: number
 ): { court: string; available: string[] }[] {
+
+    const results: { court: string; available: string[] }[] = [];
+
     // Start time: 13:00 UTC same day
     let startTime = new Date(targetDate);
     startTime.setUTCHours(13, 0, 0, 0);
@@ -97,6 +100,8 @@ function getAvailableTimeSlots(
       roundedTime.setMilliseconds(0);
 
       startTime = roundedTime;
+    } else if (daysToAdd === 0 && etTime.getHours() >= 22) {
+      return results;
     }
     
     // Group reservations by court
@@ -108,8 +113,6 @@ function getAvailableTimeSlots(
         }
         courtReservations.get(reservation.CourtLabel)?.push(reservation);
     });
-
-    const results: { court: string; available: string[] }[] = [];
     
     // Process each court
     courtReservations.forEach((bookings, courtLabel) => {
