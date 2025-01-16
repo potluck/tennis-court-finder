@@ -9,6 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const date = new Date();
       date.setDate(date.getDate() + i);
       return date.toLocaleDateString('en-US', {
+        timeZone: 'America/New_York',
         weekday: 'long',
         month: 'short',
         day: 'numeric'
