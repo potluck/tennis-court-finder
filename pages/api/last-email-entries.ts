@@ -28,7 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       )
       SELECT * FROM RankedEntries
       WHERE rn = 1
-      ORDER BY right(date_for, 2) asc
     `;
 
     const formattedRows = rows.map(row => ({

@@ -37,8 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Filter out short time slots from the data
     const filteredData = filterShortTimeSlots(slotsData);
 
-    const filteredLastEmailRows = filterShortTimeSlots(rows.map((row: { court_list: TimeSlot[]; }) => row.court_list));
-
+    const filteredLastEmailRows = filterShortTimeSlots(rows.sort((a: { date_for: string; }, b: { date_for: string; }) => new Date(a.date_for).getTime() - new Date(b.date_for).getTime()).map((row: { court_list: TimeSlot[]; }) => row.court_list));
 
     const hasAvailableSlots = (filteredData as TimeSlot[][]).some((daySlots: TimeSlot[]) =>
       daySlots.some(slot => slot.available && slot.available.length > 0)
