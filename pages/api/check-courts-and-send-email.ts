@@ -94,7 +94,7 @@ function hasNewAvailabilityAfterLastEmailData(currentData: TimeSlot[][], lastEma
 }
 
 function formatEmailContent(data: TimeSlot[][]): EmailContent {
-  const bookingLink = 'https://usta.courtreserve.com/Online/Reservations/Index/10243';
+  const bookingLink = 'https://usta.courtreserve.com/Online/Reservations/Index/5881';
 
   let htmlContent = `
     <html>

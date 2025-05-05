@@ -27,19 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     targetDate.setDate(targetDate.getDate() + daysToAdd);
 
 
-    const cachedData = await getCache(targetDate);
-    if (cachedData) {
-      console.log("got cache!");
-      // Transform cached data back to the expected format
-      const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({
-        court: `Court #${court.court}`,
-        available: court.available
-      }));
-      if (forEmail === 'true') {
-        await updateCacheForEmail(cachedData.id);
-      }
-      return res.status(200).json(availableTimeSlots);
-    }
+    // const cachedData = await getCache(targetDate);
+    // if (cachedData) {
+    //   console.log("got cache!");
+    //   // Transform cached data back to the expected format
+    //   const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({
+    //     court: `Court #${court.court}`,
+    //     available: court.available
+    //   }));
+    //   if (forEmail === 'true') {
+    //     await updateCacheForEmail(cachedData.id);
+    //   }
+    //   return res.status(200).json(availableTimeSlots);
+    // }
 
     // If no cache hit, proceed with the original logic
     const reservations = await callCourtsAPI(targetDate);
@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         court: parseInt(court.court.replace(/\D/g, '')),
         available: court.available
       }));
-    await setCache(courtsWithAvailability, targetDate, forEmail === 'true');
+    // await setCache(courtsWithAvailability, targetDate, forEmail === 'true');
 
     res.status(200).json(availableTimeSlots);
   } catch (error) {
@@ -184,59 +184,63 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
   console.log("calling courtreserve api");
   // return Promise.resolve(getMockData());
 
-  // Base URL and parameters
-  const baseUrl = 'https://memberschedulers.courtreserve.com/SchedulerApi/ReadExpandedApi';
-
-  // Static parameters
-  const params = {
-    id: '10243',
-    uiCulture: 'en-US',
-    requestData: 'eb6Pn1vtmodO/y4NZJEchGdVYPE729Bz1Gt1aKWVGfZ0SdVw/fQrnxsxMxElybabX3+5Qv5xLqRtaI39RtH2lWSZ/nr1F444auYnpYERzhRowItFLZRKDQA0ZQcz1Vvs4B5EJuAGbBI=',
-    sort: '',
-    group: '',
-    filter: '',
-  };
-
-  // Dynamic JSON data based on input date
+  // Format the date in ISO string format
+  const startDate = new Date(date);
+  startDate.setUTCHours(4, 0, 0, 0); // Setting to 04:00:00.000Z as in the curl example
+  
+  // Format the date in RFC format
+  const rfcDate = startDate.toUTCString();
+  
+  // JSON data for the new API request
   const jsonData = {
-    orgId: "10243",
-    TimeZone: "America/New_York",
-    KendoDate: {
-      Year: date.getFullYear(),
-      Month: date.getMonth() + 1, // JavaScript months are 0-based
-      Day: date.getDate()
+    "startDate": startDate.toISOString(),
+    "orgId": "5881",
+    "TimeZone": "America/New_York",
+    "Date": rfcDate,
+    "KendoDate": {
+      "Year": date.getFullYear(),
+      "Month": date.getMonth() + 1, // JavaScript months are 0-based
+      "Day": date.getDate()
     },
-    UiCulture: "en-US",
-    CostTypeId: "104773",
-    CustomSchedulerId: "",
-    ReservationMinInterval: "60",
-    SelectedCourtIds: "34737,34738,34739,34740,34788,34789,34790",
-    SelectedInstructorIds: "",
-    MemberIds: "",
-    MemberFamilyId: "",
-    EmbedCodeId: "",
-    HideEmbedCodeReservationDetails: "True"
+    "UiCulture": "en-US",
+    "CostTypeId": "78549",
+    "CustomSchedulerId": "294",
+    "ReservationMinInterval": "60"
   };
-
-  // Construct URL with query parameters
-  const queryParams = new URLSearchParams({
-    ...params,
-    jsonData: JSON.stringify(jsonData)
-  });
-
-  const url = `${baseUrl}?${queryParams.toString()}`;
-
+  
+  // Convert jsonData to URL encoded format
+  const formData = new URLSearchParams();
+  formData.append('jsonData', JSON.stringify(jsonData));
+  
   try {
-    const response = await fetch(url);
+    const response = await fetch('https://usta.courtreserve.com/Online/Reservations/ReadConsolidated/5881', {
+      method: 'POST',
+      headers: {
+        'authority': 'usta.courtreserve.com',
+        'accept': '*/*',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+      },
+      body: formData.toString()
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json() as CourtReserveResponse;
-    // Filter to only include the attributes we care about
-    return data.Data.map(({ Start, End, CourtLabel }) => ({
-      Start,
-      End,
-      CourtLabel: CourtLabel.includes('Singles Court') ? 'Court #1' : CourtLabel
+    
+    const data = await response.json();
+    
+    // Debug the response structure
+    // console.log('API Response Structure:', JSON.stringify(data, null, 2).substring(0, 5500) + '...');
+    console.log('API Response Structure:', JSON.stringify(data, null, 2));
+    
+    // Map the response to our expected format
+    // You may need to adjust this mapping based on the actual response structure
+    return (data.Data || []).map((reservation: any) => ({
+      Start: reservation.Start || reservation.start,
+      End: reservation.End || reservation.end,
+      CourtLabel: (reservation.CourtLabel || reservation.courtLabel || '').includes('Singles Court') 
+        ? 'Court #1' 
+        : (reservation.CourtLabel || reservation.courtLabel)
     }));
   } catch (error) {
     console.error('Error fetching courts data:', error);
