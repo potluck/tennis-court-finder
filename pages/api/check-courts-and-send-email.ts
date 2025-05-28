@@ -190,9 +190,9 @@ async function sendEmail(emailContent: EmailContent) {
   });
 
   const mailOptions = {
-    from: "potluck.mittal@gmail.com",
-    to: "potluck.mittal@gmail.com, summer.than@gmail.com, azy@google.com, drschafran@gmail.com, J@ckaren.as, johnnyhwin@gmail.com, cqin123@gmail.com",
-    subject: `McCarren Tennis Courts Availability Update - ${today}`,
+    from: process.env.GMAIL_EMAIL,
+    to: process.env.RECIPIENT_EMAILS,
+    subject: `NTC Tennis Courts Availability Update - ${today}`,
     text: emailContent.text,
     html: emailContent.html
   };

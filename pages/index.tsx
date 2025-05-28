@@ -120,7 +120,7 @@ export default function Home() {
     >
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
         <div className="flex flex-col sm:flex-row sm:justify-between w-full items-center gap-4">
-          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">McCarren Available Court Time Slots</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">NTC Available Court Time Slots</h1>
           <button
             onClick={toggleHalfHourSlots}
             className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm transition-colors dark:text-gray-100"
