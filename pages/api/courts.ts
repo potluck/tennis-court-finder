@@ -3,22 +3,41 @@ import { NextApiRequest, NextApiResponse } from 'next';
 // import { setCache } from '@/utils/set-cache'; // Commented out due to unused cache logic
 // import { updateCacheForEmail } from '@/utils/update-cache-for-email'; // Commented out due to unused cache logic
 
-interface CourtReservation {
-  Start: string;
-  End: string;
-  CourtLabel: string;
+// Helper function to parse Microsoft-style date strings
+function parseMicrosoftDate(msDate: string): Date | null {
+  if (!msDate) return null;
+  const match = /Date\((\d+)\)/.exec(msDate);
+  if (match && match[1]) {
+    return new Date(parseInt(match[1], 10));
+  }
+  console.warn(`Failed to parse date: ${msDate}`);
+  return null;
 }
 
-// Define an interface for the structure of the data received from the external API
-interface ApiCourtReservation {
-  Start?: string; // API might use different casing or names
-  End?: string;
-  CourtLabel?: string;
-  start?: string;
-  end?: string;
-  courtLabel?: string;
-  // Add other potential fields if needed for context, but these are the ones used
-  [key: string]: unknown; // Allow for other properties that are not used
+// Interface for the raw slot data from the NTC API (items in responseData.Data)
+interface ApiSlotData {
+  Id: string;
+  Start: string; // Microsoft date string, e.g., "/Date(1748948400000)/"
+  End: string;   // Microsoft date string
+  CourtType: string;
+  AvailableCourtIds: number[];
+  AvailableCourts: number; // Number of courts available in this slot
+}
+
+// Interface for the initially parsed slot data from callCourtsAPI
+interface ParsedSlot {
+  id: string;
+  startTime: Date; // Changed from Date | null after filter in callCourtsAPI
+  endTime: Date;   // Changed from Date | null after filter in callCourtsAPI
+  courtType: string;
+  availableCourtIds: number[];
+  numberOfAvailableCourts: number;
+}
+
+// Interface for the final structure expected by the frontend
+interface FrontendTimeSlot {
+  court: string;
+  available: string[];
 }
 
 // TODO: Pull out logic into util function that we can call from check-courts-and-send-email.ts - doesn't need to be over the wire
@@ -49,111 +68,92 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // } // Commented out cache logic
 
     // If no cache hit, proceed with the original logic
-    const reservations = await callCourtsAPI(targetDate);
-    const availableTimeSlots = getAvailableTimeSlots(reservations, targetDate, daysToAdd);
-    // Ensure courtsWithAvailability is commented out or removed
-    // const courtsWithAvailability = availableTimeSlots // Commented out as not used
-    //   .filter(court => court.available.length > 0) // Commented out as not used
-    //   .map(court => ({ // Commented out as not used
-    //     court: parseInt(court.court.replace(/\D/g, '')), // Commented out as not used
-    //     available: court.available // Commented out as not used
-    //   })); // Commented out as not used
-    // await setCache(courtsWithAvailability, targetDate, forEmail === 'true'); // Commented out cache logic
+    const parsedSlots: ParsedSlot[] = await callCourtsAPI(targetDate);
+    const availableTimeSlots: FrontendTimeSlot[] = getAvailableTimeSlots(parsedSlots);
+
     res.status(200).json(availableTimeSlots);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in handler:", error);
     res.status(500).json({ error: 'Failed to fetch court reservations' });
   }
 }
 
-// Function to extract available timeslots
 function getAvailableTimeSlots(
-  reservations: CourtReservation[],
-  targetDate: Date,
-  daysToAdd: number
-): { court: string; available: string[] }[] {
-  const results: { court: string; available: string[] }[] = [];
-  const targetDayOfWeek = targetDate.getDay();
-  // Start time: 13:00 UTC same day (8AM Eastern)
-  let startTime = new Date(targetDate);
-  startTime.setUTCHours(12, 0, 0, 0); // TODO: 13 in the fall/winter, 12 in the spring/summer
-  // End time: 03:00 UTC next day (10PM Eastern) or 8PM Eastern on weekends
-  const endTime = new Date(targetDate);
-  endTime.setUTCDate(endTime.getUTCDate() + 1);
-  // endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 1 : 3, 0, 0, 0);  // TODO: This is for the fall/winter
-  endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 0 : 2, 0, 0, 0); // TODO: This is for the spring/summer
-  // For "today", start time should be now (don't look for time slots earlier than now)
-  const now = new Date();
-  const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-  if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
-    // Round up to nearest 30 minutes
-    const minutes = now.getMinutes();
-    const roundedMinutes = Math.ceil(minutes / 30) * 30;
-    const roundedTime = new Date(now);
-    if (roundedMinutes === 60) {
-      roundedTime.setHours(roundedTime.getHours() + 1);
-      roundedTime.setMinutes(0);
-    } else {
-      roundedTime.setMinutes(roundedMinutes);
-    }
-    roundedTime.setSeconds(0);
-    roundedTime.setMilliseconds(0);
-    startTime = roundedTime;
-  } else if (daysToAdd === 0 && etTime.getHours() >= (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
-    return results;
+  parsedSlots: ParsedSlot[]
+): FrontendTimeSlot[] {
+  if (!parsedSlots || parsedSlots.length === 0) {
+    return [];
   }
-  // Group reservations by court
-  const courtReservations = new Map<string, CourtReservation[]>();
-  reservations.forEach(reservation => {
-    if (!courtReservations.has(reservation.CourtLabel)) {
-      courtReservations.set(reservation.CourtLabel, []);
-    }
-    courtReservations.get(reservation.CourtLabel)?.push(reservation);
-  });
-  // Process each court
-  courtReservations.forEach((bookings, courtLabel) => {
-    // Sort bookings by start time
-    bookings.sort((a, b) => new Date(a.Start).getTime() - new Date(b.Start).getTime());
-    const availableSlots: string[] = [];
-    let currentTime = startTime;
-    // Skip if we're already past end time
-    if (currentTime >= endTime) {
-      results.push({ court: courtLabel, available: [] });
-      return;
-    }
-    bookings.forEach(booking => {
-      const bookingStart = new Date(booking.Start);
-      const bookingEnd = new Date(booking.End);
-      // Skip if we're already past end time
-      if (currentTime >= endTime) return;
-      if (currentTime < bookingStart && currentTime < endTime) {
-        // Adjust end time to not exceed 10 PM ET
-        const slotEnd = bookingStart.getTime() > endTime.getTime()
-          ? endTime
-          : bookingStart;
-        availableSlots.push(
-          `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
-        );
+
+  // Group slots by individual court ID
+  const slotsByCourtId = new Map<number, ParsedSlot[]>();
+  parsedSlots.forEach(slot => {
+    slot.availableCourtIds.forEach(courtId => {
+      if (!slotsByCourtId.has(courtId)) {
+        slotsByCourtId.set(courtId, []);
       }
-      currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
-    });
-    // Check for available time after last booking, but before 10 PM ET
-    if (currentTime < endTime) {
-      availableSlots.push(
-        `${formatTime(currentTime)} to ${formatTime(endTime)}`
-      );
-    }
-    results.push({
-      court: courtLabel,
-      available: availableSlots
+      // Add the parent slot info, duplicating it for each court it applies to
+      // Ensure we're creating a new object for each court to avoid reference issues if modifying
+      slotsByCourtId.get(courtId)!.push({ ...slot, availableCourtIds: [courtId] });
     });
   });
-  // Sort results by court label
-  return results.sort((a, b) => a.court.localeCompare(b.court));
+
+  const finalCourtAvailability: FrontendTimeSlot[] = [];
+
+  slotsByCourtId.forEach((courtSlots, courtId) => {
+    // Sort slots by start time for this specific court
+    courtSlots.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+
+    const availabilityStrings: string[] = [];
+    if (courtSlots.length === 0) {
+      finalCourtAvailability.push({ court: `Court #${courtId}`, available: [] });
+      return; // Continue to next courtId
+    }
+
+    let currentBlockStart: Date | null = null;
+    let currentBlockEnd: Date | null = null;
+
+    for (const slot of courtSlots) {
+      if (currentBlockStart === null) {
+        currentBlockStart = slot.startTime;
+        currentBlockEnd = slot.endTime;
+      } else if (slot.startTime.getTime() === currentBlockEnd!.getTime()) {
+        // This slot is continuous with the current block
+        currentBlockEnd = slot.endTime;
+      } else {
+        // Gap detected, or slot is not continuous. Finalize previous block.
+        availabilityStrings.push(`${formatTime(currentBlockStart)} to ${formatTime(currentBlockEnd!)}`);
+        // Start new block
+        currentBlockStart = slot.startTime;
+        currentBlockEnd = slot.endTime;
+      }
+    }
+
+    // Add the last block after loop finishes
+    if (currentBlockStart && currentBlockEnd) {
+      availabilityStrings.push(`${formatTime(currentBlockStart)} to ${formatTime(currentBlockEnd)}`);
+    }
+
+    finalCourtAvailability.push({
+      court: `Court #${courtId}`, // Or a more sophisticated naming/mapping
+      available: availabilityStrings
+    });
+  });
+
+  // Sort final results by court name (e.g., Court #1, Court #10, Court #2)
+  return finalCourtAvailability.sort((a, b) => {
+    const numA = parseInt(a.court.replace(/\D/g, ''));
+    const numB = parseInt(b.court.replace(/\D/g, ''));
+    return numA - numB;
+  });
 }
 
 // Helper function to format time in ET
 function formatTime(date: Date): string {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    console.warn(`Invalid date passed to formatTime:`, date);
+    return "Invalid time";
+  }
   return date.toLocaleTimeString('en-US', {
     timeZone: 'America/New_York',
     hour: '2-digit',
@@ -162,36 +162,30 @@ function formatTime(date: Date): string {
   });
 }
 
-async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<CourtReservation[]> {
-  // if (testing) {
-  //   return Promise.resolve(getMockData());
-  // }
-  console.log("calling courtreserve api");
-  // return Promise.resolve(getMockData());
-  // Format the date in ISO string format
-  const startDate = new Date(date);
-  startDate.setUTCHours(4, 0, 0, 0); // Setting to 04:00:00.000Z as in the curl example
-  // Format the date in RFC format
-  const rfcDate = startDate.toUTCString();
-  // JSON data for the new API request
+// This function now returns ParsedSlot[]
+async function callCourtsAPI(date: Date): Promise<ParsedSlot[]> {
+  console.log("calling courtreserve api for date:", date.toDateString());
+  const startDateForAPI = new Date(date);
+  const year = startDateForAPI.getFullYear();
+  const month = (startDateForAPI.getMonth() + 1).toString().padStart(2, '0');
+  const day = startDateForAPI.getDate().toString().padStart(2, '0');
+  const rfcDate = startDateForAPI.toUTCString();
+  const isoDateForJson = startDateForAPI.toISOString();
+
   const jsonData = {
-    "startDate": startDate.toISOString(),
+    "startDate": isoDateForJson,
     "orgId": "5881",
     "TimeZone": "America/New_York",
     "Date": rfcDate,
-    "KendoDate": {
-      "Year": date.getFullYear(),
-      "Month": date.getMonth() + 1, // JavaScript months are 0-based
-      "Day": date.getDate()
-    },
+    "KendoDate": { "Year": year, "Month": parseInt(month,10), "Day": parseInt(day,10) },
     "UiCulture": "en-US",
     "CostTypeId": "78549",
     "CustomSchedulerId": "294",
-    "ReservationMinInterval": "60"
+    "ReservationMinInterval": "30"
   };
-  // Convert jsonData to URL encoded format
   const formData = new URLSearchParams();
   formData.append('jsonData', JSON.stringify(jsonData));
+  
   try {
     const response = await fetch('https://usta.courtreserve.com/Online/Reservations/ReadConsolidated/5881', {
       method: 'POST',
@@ -203,23 +197,32 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
       body: formData.toString()
     });
     if (!response.ok) {
+      console.error(`API HTTP error! status: ${response.status}`, await response.text());
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data = await response.json();
-    // Debug the response structure
-    // console.log('API Response Structure:', JSON.stringify(data, null, 2).substring(0, 5500) + '...');
-    console.log('API Response Structure:', JSON.stringify(data, null, 2));
-    // Map the response to our expected format
-    // We use the ApiCourtReservation interface here to type the input parameter 'reservation'
-    return (data.Data || []).map((reservation: ApiCourtReservation) => ({
-      Start: reservation.Start || reservation.start,
-      End: reservation.End || reservation.end,
-      CourtLabel: (reservation.CourtLabel || reservation.courtLabel || '').includes('Singles Court')
-        ? 'Court #1'
-        : (reservation.CourtLabel || reservation.courtLabel)
-    })).filter((item: Partial<CourtReservation>) => item.Start && item.End && item.CourtLabel); // Basic filtering for valid items
+    const responseData = await response.json();
+    console.log('Raw API Response Data:', JSON.stringify(responseData, null, 2));
+    if (!responseData || !Array.isArray(responseData.Data)) {
+      console.error('API response is not in expected format or Data is missing/not an array', responseData);
+      return [];
+    }
+    return responseData.Data.map((slot: ApiSlotData) => {
+      const startTime = parseMicrosoftDate(slot.Start);
+      const endTime = parseMicrosoftDate(slot.End);
+      return {
+        id: slot.Id,
+        startTime: startTime,
+        endTime: endTime,
+        courtType: slot.CourtType,
+        availableCourtIds: slot.AvailableCourtIds || [],
+        numberOfAvailableCourts: slot.AvailableCourts
+      };
+    }).filter((slot: ParsedSlot | { startTime: null; endTime: null }): slot is ParsedSlot => 
+      slot.startTime instanceof Date && !isNaN(slot.startTime.getTime()) &&
+      slot.endTime instanceof Date && !isNaN(slot.endTime.getTime())
+    );
   } catch (error) {
-    console.error('Error fetching courts data:', error);
+    console.error('Error fetching or parsing courts data:', error);
     throw error;
   }
 }
