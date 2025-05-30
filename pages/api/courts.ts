@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { setCache } from '@/utils/set-cache';
-import { getCache } from '@/utils/get-cache';
-import { updateCacheForEmail } from '@/utils/update-cache-for-email';
+// import { getCache } from '@/utils/get-cache'; // Commented out due to unused cache logic
+// import { setCache } from '@/utils/set-cache'; // Commented out due to unused cache logic
+// import { updateCacheForEmail } from '@/utils/update-cache-for-email'; // Commented out due to unused cache logic
 
 interface CourtReservation {
   Start: string;
@@ -9,15 +9,24 @@ interface CourtReservation {
   CourtLabel: string;
 }
 
-interface CourtReserveResponse {
-  Data: CourtReservation[];
+// Define an interface for the structure of the data received from the external API
+interface ApiCourtReservation {
+  Start?: string; // API might use different casing or names
+  End?: string;
+  CourtLabel?: string;
+  start?: string;
+  end?: string;
+  courtLabel?: string;
+  // Add other potential fields if needed for context, but these are the ones used
+  [key: string]: unknown; // Allow for other properties that are not used
 }
 
 // TODO: Pull out logic into util function that we can call from check-courts-and-send-email.ts - doesn't need to be over the wire
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { daysLater, forEmail } = req.query;
+    const { daysLater } = req.query;
     const daysToAdd = parseInt(daysLater as string) || 0;
+    // const forEmail = req.query.forEmail as string; // Commented out as not used
 
     // Get today's date in Eastern time
     const today = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -25,35 +34,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Add days to the date
     const targetDate = new Date(todayET);
     targetDate.setDate(targetDate.getDate() + daysToAdd);
-
-
-    // const cachedData = await getCache(targetDate);
-    // if (cachedData) {
-    //   console.log("got cache!");
-    //   // Transform cached data back to the expected format
-    //   const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({
-    //     court: `Court #${court.court}`,
-    //     available: court.available
-    //   }));
-    //   if (forEmail === 'true') {
-    //     await updateCacheForEmail(cachedData.id);
-    //   }
-    //   return res.status(200).json(availableTimeSlots);
-    // }
+    // const cachedData = await getCache(targetDate); // Commented out cache logic
+    // if (cachedData) { // Commented out cache logic
+    //   console.log("got cache!"); // Commented out cache logic
+    //   // Transform cached data back to the expected format // Commented out cache logic
+    //   const availableTimeSlots = cachedData.courtList.map((court: { court: number; available: string[]; }) => ({ // Commented out cache logic
+    //     court: `Court #${court.court}`, // Commented out cache logic
+    //     available: court.available // Commented out cache logic
+    //   })); // Commented out cache logic
+    //   if (forEmail === 'true') { // Commented out cache logic
+    //     await updateCacheForEmail(cachedData.id); // Commented out cache logic
+    //   } // Commented out cache logic
+    //   return res.status(200).json(availableTimeSlots); // Commented out cache logic
+    // } // Commented out cache logic
 
     // If no cache hit, proceed with the original logic
     const reservations = await callCourtsAPI(targetDate);
     const availableTimeSlots = getAvailableTimeSlots(reservations, targetDate, daysToAdd);
-
-    // Only cache courts that have available slots
-    const courtsWithAvailability = availableTimeSlots
-      .filter(court => court.available.length > 0)
-      .map(court => ({
-        court: parseInt(court.court.replace(/\D/g, '')),
-        available: court.available
-      }));
-    // await setCache(courtsWithAvailability, targetDate, forEmail === 'true');
-
+    // Ensure courtsWithAvailability is commented out or removed
+    // const courtsWithAvailability = availableTimeSlots // Commented out as not used
+    //   .filter(court => court.available.length > 0) // Commented out as not used
+    //   .map(court => ({ // Commented out as not used
+    //     court: parseInt(court.court.replace(/\D/g, '')), // Commented out as not used
+    //     available: court.available // Commented out as not used
+    //   })); // Commented out as not used
+    // await setCache(courtsWithAvailability, targetDate, forEmail === 'true'); // Commented out cache logic
     res.status(200).json(availableTimeSlots);
   } catch (error) {
     console.error("Error:", error);
@@ -67,31 +72,23 @@ function getAvailableTimeSlots(
   targetDate: Date,
   daysToAdd: number
 ): { court: string; available: string[] }[] {
-
   const results: { court: string; available: string[] }[] = [];
-
   const targetDayOfWeek = targetDate.getDay();
-
   // Start time: 13:00 UTC same day (8AM Eastern)
   let startTime = new Date(targetDate);
   startTime.setUTCHours(12, 0, 0, 0); // TODO: 13 in the fall/winter, 12 in the spring/summer
-
   // End time: 03:00 UTC next day (10PM Eastern) or 8PM Eastern on weekends
   const endTime = new Date(targetDate);
   endTime.setUTCDate(endTime.getUTCDate() + 1);
   // endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 1 : 3, 0, 0, 0);  // TODO: This is for the fall/winter
   endTime.setUTCHours((targetDayOfWeek === 0 || targetDayOfWeek === 6) ? 0 : 2, 0, 0, 0); // TODO: This is for the spring/summer
-
-
   // For "today", start time should be now (don't look for time slots earlier than now)
   const now = new Date();
   const etTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-
   if (daysToAdd === 0 && etTime.getHours() >= 8 && etTime.getHours() < (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
     // Round up to nearest 30 minutes
     const minutes = now.getMinutes();
     const roundedMinutes = Math.ceil(minutes / 30) * 30;
-
     const roundedTime = new Date(now);
     if (roundedMinutes === 60) {
       roundedTime.setHours(roundedTime.getHours() + 1);
@@ -101,30 +98,24 @@ function getAvailableTimeSlots(
     }
     roundedTime.setSeconds(0);
     roundedTime.setMilliseconds(0);
-
     startTime = roundedTime;
   } else if (daysToAdd === 0 && etTime.getHours() >= (targetDayOfWeek === 0 || targetDayOfWeek === 6 ? 20 : 22)) {
     return results;
   }
-
   // Group reservations by court
   const courtReservations = new Map<string, CourtReservation[]>();
-
   reservations.forEach(reservation => {
     if (!courtReservations.has(reservation.CourtLabel)) {
       courtReservations.set(reservation.CourtLabel, []);
     }
     courtReservations.get(reservation.CourtLabel)?.push(reservation);
   });
-
   // Process each court
   courtReservations.forEach((bookings, courtLabel) => {
     // Sort bookings by start time
     bookings.sort((a, b) => new Date(a.Start).getTime() - new Date(b.Start).getTime());
-
     const availableSlots: string[] = [];
     let currentTime = startTime;
-
     // Skip if we're already past end time
     if (currentTime >= endTime) {
       results.push({ court: courtLabel, available: [] });
@@ -133,36 +124,30 @@ function getAvailableTimeSlots(
     bookings.forEach(booking => {
       const bookingStart = new Date(booking.Start);
       const bookingEnd = new Date(booking.End);
-
       // Skip if we're already past end time
       if (currentTime >= endTime) return;
-
       if (currentTime < bookingStart && currentTime < endTime) {
         // Adjust end time to not exceed 10 PM ET
         const slotEnd = bookingStart.getTime() > endTime.getTime()
           ? endTime
           : bookingStart;
-
         availableSlots.push(
           `${formatTime(currentTime)} to ${formatTime(slotEnd)}`
         );
       }
       currentTime = new Date(Math.max(currentTime.getTime(), bookingEnd.getTime()));
     });
-
     // Check for available time after last booking, but before 10 PM ET
     if (currentTime < endTime) {
       availableSlots.push(
         `${formatTime(currentTime)} to ${formatTime(endTime)}`
       );
     }
-
     results.push({
       court: courtLabel,
       available: availableSlots
     });
   });
-
   // Sort results by court label
   return results.sort((a, b) => a.court.localeCompare(b.court));
 }
@@ -183,14 +168,11 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
   // }
   console.log("calling courtreserve api");
   // return Promise.resolve(getMockData());
-
   // Format the date in ISO string format
   const startDate = new Date(date);
   startDate.setUTCHours(4, 0, 0, 0); // Setting to 04:00:00.000Z as in the curl example
-  
   // Format the date in RFC format
   const rfcDate = startDate.toUTCString();
-  
   // JSON data for the new API request
   const jsonData = {
     "startDate": startDate.toISOString(),
@@ -207,11 +189,9 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
     "CustomSchedulerId": "294",
     "ReservationMinInterval": "60"
   };
-  
   // Convert jsonData to URL encoded format
   const formData = new URLSearchParams();
   formData.append('jsonData', JSON.stringify(jsonData));
-  
   try {
     const response = await fetch('https://usta.courtreserve.com/Online/Reservations/ReadConsolidated/5881', {
       method: 'POST',
@@ -222,26 +202,22 @@ async function callCourtsAPI(date: Date/*, testing: boolean = false*/): Promise<
       },
       body: formData.toString()
     });
-    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
     const data = await response.json();
-    
     // Debug the response structure
     // console.log('API Response Structure:', JSON.stringify(data, null, 2).substring(0, 5500) + '...');
     console.log('API Response Structure:', JSON.stringify(data, null, 2));
-    
     // Map the response to our expected format
-    // You may need to adjust this mapping based on the actual response structure
-    return (data.Data || []).map((reservation: any) => ({
+    // We use the ApiCourtReservation interface here to type the input parameter 'reservation'
+    return (data.Data || []).map((reservation: ApiCourtReservation) => ({
       Start: reservation.Start || reservation.start,
       End: reservation.End || reservation.end,
-      CourtLabel: (reservation.CourtLabel || reservation.courtLabel || '').includes('Singles Court') 
-        ? 'Court #1' 
+      CourtLabel: (reservation.CourtLabel || reservation.courtLabel || '').includes('Singles Court')
+        ? 'Court #1'
         : (reservation.CourtLabel || reservation.courtLabel)
-    }));
+    })).filter((item: Partial<CourtReservation>) => item.Start && item.End && item.CourtLabel); // Basic filtering for valid items
   } catch (error) {
     console.error('Error fetching courts data:', error);
     throw error;
